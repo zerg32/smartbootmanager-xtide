@@ -19,9 +19,14 @@
   a tested LBA 0-159 `boot-region.bin` target added.
 - Completed: a clean export of the staged tree passes `make ci-boot-components
   boot-region`.
-- Remaining: split the initial history into the pristine upstream/import and
-  focused integration commits below, review staging, create the GitHub repository,
-  and push. No commit, remote, or GitHub repository exists yet.
+- Completed: pristine SBM and XT-IDE baseline commits tagged, followed by the
+  current integration commit. The public repository is
+  `https://github.com/zerg32/smartbootmanager-xtide`; `main` and both upstream
+  tags are pushed.
+- Completed: the initial GitHub Actions build passed and uploaded boot artifacts.
+- Remaining: optionally split the initial integration commit into narrower
+  follow-up commits. Do not create the `v0.1.0-xtide-r619` release tag until
+  the current rebuilt boot components are verified again on the physical 486.
 
 1. Preserve the currently working source state and record hashes for:
    - SBM 3.7.1 archive: `f17fa683705e4458d49537d8d122ad4d0b53de6e0f175e481209c7d79da1a03a`
@@ -58,7 +63,8 @@
    - Generated 3.8/4 GiB images
    - Temporary debugging files
 5. Before the first public commit, replace the current single staged snapshot
-   with clean upstream/import commits in Git history:
+   with clean upstream/import commits in Git history. Completed in the initial
+   repository history:
    - First commit: pristine SBM 3.7.1 from SourceForge.
    - Tag: `upstream/sbm-3.7.1`.
    - Second commit: pristine XT-IDE r619 snapshot.
@@ -125,8 +131,8 @@
     git ls-files
     ```
 
-13. Create `zerg32/smartbootmanager-xtide`, push the main branch and upstream tags, then verify the GitHub Actions build.
-14. Tag the known-good release as `v0.1.0-xtide-r619`.
+13. Create `zerg32/smartbootmanager-xtide`, push the main branch and upstream tags, then verify the GitHub Actions build. Completed.
+14. After current physical-hardware verification, tag the known-good release as `v0.1.0-xtide-r619`.
 15. Describe that release as:
 
     ```text
