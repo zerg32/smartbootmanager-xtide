@@ -1,0 +1,821 @@
+<!doctype linuxdoc system>
+
+<article>
+
+<!-- Title information -->
+
+<title>Smart Boot Manager 3.x 简明用户指南
+<author>Suzhe, <tt/suzhe@gnuchina.org/
+<date>v0.10, 2001 年 2 月 10 日
+<abstract>
+本文档简单介绍了 Smart Boot Manager 3.x 的使用方法.
+</abstract>
+
+<!-- Table of contents -->
+<toc>
+
+<!-- Begin the document -->
+
+<sect>简  介
+
+<p>
+
+<sect1>版  权
+
+<p>
+Smart Boot Manager is a free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License as published
+by the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+
+Smart BootManager 是自由软件; 你可以在遵从由自由软件基金会(FSF)发布的
+GNU 通用公共版权协议 (GNU GPL) 第二版或后续版本条款的前提下, 
+重新发布或修改本软件.
+
+本软件是基于实用的理念而发布的, 但没有任何担保, 甚至不保证适用于
+任何特殊用途. 参见 GNU 通用公共版权协议, 以获得详细信息.
+
+本软件应该附有一份 GNU 通用公共版权协议的副本, 如果没有, 请致函
+自由软件基金会(FSF): 675 Mass Ave, Cambridge, MA 02139, USA.
+
+<sect1>Smart Boot Manager 3.x 是什么, 不是什么?
+
+<p>
+Smart Boot Manager (或缩写为 SmartBtmgr), 是一个系统无关的启动管理器----
+一个在任何系统启动之前, 由 BIOS 调用并执行的程序. 它可以让你选择要进入的
+操作系统.
+
+SmartBtmgr 和 OS/2 BootManager, Bootit, Bootstar, System Command 以及
+PQ-Boot 等软件类似. 但它<em/不是/一个操作系统引导程序. 也就是说, 你在使用本软
+件管理多个操作系统的时候, 还必须使用 LILO (或其它类似软件) 来引导 Linux.
+
+<sect1>Smart Boot Manager 3.x 的特性
+
+<p>
+SmartBtmgr 的设计目标是简单, 灵活以及较小的尺寸. 它具有友好的类窗口界面
+, 联机帮助和简单易用的弹出式命令菜单. 它无需配置文件或额外的配置程序, 
+所有工作都可以由它本身完成. 例如, 在第一次运行的时候, 它可以自动搜索所有
+驱动器和分区. 当然, 你在任何时候都可以让它重新进行搜索. 每个引导记录的名
+称也可以在它的界面里直接修改. 在安装完成以后, 就不用再使用安装程序了, 除
+非它遭到破坏. 你不仅可以将它安装在硬盘, 还可以安装在软盘上. 
+
+SmartBtmgr 非常小, 它可以安装在硬盘的第一个磁道中(隐藏扇区), 它不需要任
+何特殊的分区, 所以它是真正系统无关的, 这与 System Commander, OS/2 Boot
+Manager 和 PQ-Boot 等软件不同. 当然, Linux 也不是必须的.
+
+尽管它非常小, 但它具有非常强大的功能. 它还有许多其他特性, 如口令保护,
+自动延时启动, 直接启动 (与 Choose-OS 中的 single-shot autoboot 类似),
+多语言用户界面, 启动日程, 预装载按键序列, 交换驱动器号等.
+
+你可以很容易地定制 SmartBtmgr 用户界面的风格和语言. 界面数据文件和程序
+是完全独立的, 所以可以独立地改变界面数据, 而无需重新编译程序. 当前版本
+中包含两个标准的界面数据文件----中文界面和英文界面.
+
+
+<sect>怎样编译和定制 Smart Boot Manager 3.x?
+
+<sect1>怎样编译 Smart Boot Manager 3.x?
+
+<sect2>需要什么软件?
+
+<p>
+对于 Linux 用户, 需要 <em/gcc/, <em/make/ 和 <em/nasm/ (Netwide Assembler,
+下载地址: <url url="http://www.web-sites.co.uk/nasm/" name="http://www.web-sites.co.uk/nasm/">).
+对于 DOS 用户, 必需具备 <em/DJGPP/ (GCC 的 DOS 移植版, 下载地址: 
+<url url="http://www.delorie.com/djgpp/" name="http://www.delorie.com/djgpp/">)
+ 和 <em/nasm/.
+<p>
+还必须有 UCL 压缩库 (URL: <url url="http://wildsau.idv.uni-linz.ac.at/mfx/ucl.html" name="http://wildsau.idv.uni-linz.ac.at/mfx/ucl.html">) 才能正确编译 Smart BootManager. 
+
+<sect2>怎样编译?
+
+<p>
+编辑 Makefile 文件, 修改 <tt/'TARGET_OS=xxx'/ 一行. 如果使用的是 Linux,
+将这行改为 <tt/TARGET_OS=linux/, 如果使用的是 DOS, 则改为 <tt/TARGET_OS=dos/.
+
+然后执行 make 命令即可.
+
+编译好的可执行文件放在 installer/ 目录里.
+
+
+执行 <em/make install/ 命令安装. 对于 Linux, 缺省可执行文件安装目录是 
+/usr/sbin/, 主题文件将安装到 /usr/share/btmgr/, 文档将安装到 /usr/doc/btmgr/.
+如果需要改变安装目录, 请编辑 Makefile 文件.
+
+<sect1>怎样定制和安装主题文件?
+
+<p>
+你可以从本程序提供的两个标准主题文件开始编辑你自己的主题文件. 标准
+主题文件放在 manager/themes/ 目录里.
+
+在编辑新主题文件的时候, 请参阅主题文件中的注释.
+
+你必须有 <em/nasm/ 才能编译主题文件.
+编译方法非常简单, 例如, 假设新主题文件的名称为 mytheme.asm, 一下命令
+将产生一个 mytheme.asmm 的二进制版本:
+
+<tscreen><verb>
+% nasm -fbin -o mytheme.bin mytheme.asm
+</verb></tscreen>
+
+如果你想在主题文件中使用非标准键盘映射表, 则使用以下命令:
+
+<tscreen><verb>
+% nasm -DKEYMAP_XXX -fbin -o mytheme.bin mytheme.asm
+</verb></tscreen>
+
+其中, KEYMAP_XXX 有以下四种选择:
+
+<tscreen><verb>
+KEYMAP_AZERTY           (AZERTY 键盘)
+KEYMAP_QWERTZ           (QWERTZ 键盘)
+KEYMAP_DVORAK           (Dvorak 键盘)
+KEYMAP_DVORAK_ANSI      (ANSI Dvorak 键盘)
+</verb></tscreen>
+
+注意, 相应的键盘映射表文件(azerty.kbd ...)必须在当前目录中.
+
+现在你可以使用新的主题文件安装 Smart Boot Manager 了
+(参见 <ref id="安装 Smart Boot Manager">):
+
+对 linux:
+
+<tscreen><verb>
+% sbminst -t mytheme.bin -d /dev/hda
+</verb></tscreen>
+
+对 dos:
+
+<tscreen><verb>
+> sbminst -t mytheme.bin -d 128
+</verb></tscreen>
+
+
+<sect>怎样安装 Smart Boot Manager 3.x?<label id="安装 Smart Boot Manager">
+
+<sect1>安装程序使用方法
+
+<p>
+目前本软件包含 DOS 和 Linux 的安装程序. 安装程序放在 installer/ 目录中.
+DOS 和 Linux 安装程序其实是由同一个源文件编译而来. 所以它们的用法也非常
+类似.
+
+安装程序的用法是:
+
+<tscreen><verb>
+  sbminst [-t theme] [-d drv] [-b backup_file] [-u backup_file]
+
+   -t theme     选择要使用的主题, 其中 theme 可以是:
+                   us = 英语主题         de = 德语主题 
+                   hu = 匈牙利语主题     zh = 中文主题
+                   ru = 俄语主题         cz = 捷克语主题 
+                   es = 西班牙语主题     fr = 法语主题 
+                   pt = 葡萄牙语主题 
+
+                   或者是一个用户定制主题的文件名.
+
+   -d drv       选择要安装 Smart BootManager 的驱动器;
+                对于 Linux:
+                   /dev/fd0 是第一个软盘驱动器, 
+                   /dev/hda 是第一个 IDE 硬盘驱动器,
+                   /dev/sda 是第一个 SCSI 硬盘驱动器.
+                对于 DOS:
+                   0   是第一个软盘驱动器,
+                   128 是第一个硬盘驱动器;
+
+   -c           关闭光驱启动特性;
+
+   -b backup_file 备份要被覆盖的数据, 以便以后卸载 Smart BootManager;
+
+   -u backup_file 卸载 Smart BootManager, 这个选项只能独立使用.
+
+   -y             不提示任何警告信息或问题.
+</verb></tscreen>
+
+例如, 在 Linux 下使用命令 <em>smbinst -t zh -d /dev/hda -b sbm-bak.dat</em> 将
+中文界面的 SmartBtmgr 安装到第一块硬盘, 并将原始数据备份到 sbm-bak.dat
+文件中.
+
+使用命令 <em/'sbminst -u sbm-bak.dat'/ 将其卸载.
+
+<sect1>特定系统的安装说明
+
+<sect2>安装 Linux 的说明
+
+<p>
+如果想用 Smart BootManager 引导 Linux, 你必须将 LILO 安装到
+Linux 分区的 Superblock 中, 而不是 MBR 中.
+
+编辑文件 /etc/lilo.conf, 将包含 "boot=/dev/hda" 的一行改为
+"boot=/dev/hda?", 其中 /dev/hda? 是 Linux 核心所在的分区.
+然后运行 /sbin/lilo.
+
+<sect2>安装 Windows NT, Windows 2000, FreeBSD, OS/2 and Solaris 的说明
+
+<p>
+你应该将这些系统安装到第一块硬盘的基本分区中. 逻辑分区和第二块(或其它)硬盘
+将不被支持. 至少我没有尝试过在第一块硬盘的基本分区以外安装这些系统.
+
+你应该打开这些系统的引导记录的自动激活标志, 否则可能出现问题.
+
+<sect2>安装 DOS, Windows 9x 的说明
+
+<p>
+你应该将 DOS 和 Windows 9x 安装到第一块硬盘的基本分区中. 尽管它们也可以
+安装到逻辑分区或其它硬盘, 但我不建议这么做. 参见<ref id="高级使用技巧">一节
+, 以得到更详细的信息.
+
+<sect>怎样使用 Smart Boot Manager 3.x?
+
+<sect1>怎样运行本程序?
+
+<p>
+安装完成后, 重新启动计算机. 如果本软件安装在了软盘上, 请将软盘插入安装
+时使用的驱动器, 并从这个驱动器引导.这时, 您将看到本软件的主界面. 
+按 F1 键以得到简单的联机帮助.
+
+<sect1>Smart Boot Manager 3.x 的界面
+
+<p>
+屏幕中央是启动菜单, 其中列出了, 本软件搜索出来的所有分区和软盘驱动器, 
+每一个分区 (或软驱) 称为一个启动记录, 例如:
+
+<tscreen><verb>
+         Flags    Number  Type     Name
+     ---------------------------------------------
+       ---------D  FD0  0  NONE     Floppy
+       ---------D  HD0  0  NONE     Harddisk
+       ---------D  HD1  0  NONE     Harddisk
+       ---------D  CD0  0  NONE     CD-ROM
+     * ----aAh---  HD0  1  FAT32    Primary 1
+       p-k----Hl-  HD0  5  FAT32    Logical 5
+       -S---A----  HD1  1  Linux    Primary 1
+       ---X-A----  HD1  2  FAT32    Primary 2
+</verb></tscreen>
+
+以上例子中, 第一条记录为软驱 (A:), 第二条记录和第三条记录分别表示两块硬盘
+(MBR). 第四条记录为 IDE 光驱. 下一条记录为第一块硬盘上的第一个基本分区, 
+再下一条记录为第一个逻辑分区, 以次类推.
+
+启动菜单中各栏的意义如下:
+
+
+<tscreen><verb>
+    Flags (标志): 标志启动记录的某些属性, 每个字母或符号的意义分别为:
+              * : 表示此记录为缺省启动的记录, 当时间倒计时为0时,
+                  或按ESC键, 将启动此记录;
+
+              p : 表示此记录有口令保护, 按 F9 键可以改变指定记录的口令;
+
+              S : 表示此记录被列入了启动日程表, 如果当前时间正好处于
+                  此记录的日程之内, SmartBtmgr则会将此记录设置为缺省
+                  启动记录. 用 Ctrl-S 键设置或取消当前记录的日程安排.
+
+              k : 表示在启动此记录之前, 需要装载一些按键到键盘缓冲
+                  区中. 用 Ctrl-K 键设置或取消当前记录的预装载按键
+                  序列.
+
+              X : 表示设置了交换驱动器标志.
+                  当启动这个分区的时候, 当前驱动器将和可启动的驱动器
+                  (ID=128) 交换. 例如, 如果第二块硬盘(ID=129)上的分区
+                  设置了这个标志, 则在启动这个分区的时候, 第一块(ID=128)
+                  和第二块(ID=129)硬盘将相互交换.
+                  此特性在启动安装在第二块或以后硬盘上的DOS/Windows等
+                  操作系统的时候特别有用.
+
+              a : 表示此记录在启动时将被自动激活, 一般情况下, 安装有
+                  Windows 9X系统的FAT基本分区都需要设置此标志, 
+                  否则可能无法正常启动系统. 按 F6 键切换此标记.
+
+              A : 表示此记录已经被标志为激活, 按 F4 键激活指定的基本分区;
+
+              h : 表示在启动其他记录时, 将自动隐藏此记录 
+                  (即将分区类型改为0xA0). 隐藏功能一般只对
+                  DOS, Windows 9X/NT系统起作用, 如果需要阻止
+                  他人访问一个分区, 可以设置此标志, 并设置口令.
+
+              H : 表示此记录已经被隐藏, 按 F5 键隐藏 (或解除隐藏) 一个分区;
+
+              l : 表示此记录为逻辑分区;
+
+              D : 表示此记录为磁盘驱动器, 在目前版本中仅表示软盘和硬盘驱动器.
+
+    Number (编号): 启动记录的驱动器和分区编号, 其中左边的为驱动器编号, 
+                   右边的为分区编号, 对于磁盘驱动器, 分区编号总为 0;
+                   对硬盘分区, 分区编号与Linux中的相同.
+
+    Type (类型) : 分区类型, 对于磁盘驱动器, 类型为NONE.
+
+    Name (名称) : 启动记录的名称, 按 F3 键修改.
+</verb></tscreen>
+
+<p>
+Smart BootManager 的某些信息和全局标志显示在屏幕的右下角, 格式为:
+
+<tscreen><verb>
+ |HD0|PSALE| 28: 30
+</verb></tscreen>
+
+第一部分(HD0)是当前启动驱动器的 BIOS 标号, 第二部分(PSALE)是全局标志,其意义为:
+
+<tscreen><verb>
+P  :  已设置了管理员口令. 
+S  :  Smart Boot Manager 处于安全锁定模式.
+A  :  Smart Boot Manager 处于管理模式.
+L  :  "保存上次启动记录" 特性已打开.
+E  :  扩展 Int 13H 已打开. 
+</verb></tscreen>
+
+第三部分(28: 30)是延时计数器.
+
+<sect1>热  键
+
+<p>
+本软件的功能键及定义如下:
+
+<tscreen><verb>
+         F1    获得帮助
+    Ctrl+F1    显示关于窗口
+         F2    保存所作的修改
+         F3    修改启动记录的名称
+         F4    将一个基本分区标记为激活
+         F5    隐藏/解除隐藏一个分区
+         F6    设置/取消自动激活标志
+         F7    设置/取消自动隐藏标志
+         F8    设置缺省启动记录
+   Shift+F8    取消缺省启动记录
+         F9    改变启动记录的口令
+        F10    改变管理员口令
+   Ctrl+F10    进入/离开管理模式
+    Alt+F10    进入/离开安全所定模式
+
+     Ctrl+D    删除一条启动记录
+     Ctrl+T    设置延时
+     Ctrl+I    重新扫描所有可能的启动记录，并重建启动记录表
+     Ctrl+H    重新扫描所有分区，并重建启动记录表
+
+     Ctrl+P    复制当前启动记录
+     Ctrl+U    向上移动当前启动记录
+     Ctrl+N    向下移动当前启动记录
+
+     Ctrl+S    设置/取消当前启动记录的日程安排
+     Ctrl+K    设置/取消当前启动记录的预装载按键序列
+
+     Ctrl+X    设置/取消交换驱动器标志
+
+     Ctrl+F    改变启动菜单模式(风格)
+
+     Ctrl+L    设置/取消 "保存前次启动记录特性". 如果打开此模式,
+               屏幕右下方会出现一个 'L' 字母, SBM 会将本次启动的
+               记录保存下来作为下次启动的缺省记录.
+
+     Ctrl+Q    退出到 BIOS
+
+    Up,Down    移动选择条
+     / 或 ?    显示当前启动记录的信息
+      Enter    启动选中的记录
+
+    Del,Home,End,PageDown    移动主窗口
+    小键盘 +   改变显示模式
+
+    Ctrl+F10   关机
+
+         Tab   打开/关闭命令菜单
+</verb></tscreen>
+
+<p>
+当命令菜单被打开的时候, 可以使用以下一些功能键:
+<tscreen><verb>
+  Up,Down    移动命令菜单的选择条.
+    Enter    执行选中的命令.
+
+  Ctrl+Up    移动启动菜单的选择条.
+Ctrl+Down 
+
+     Home
+   Delete    移动命令菜单.
+      End
+ PageDown
+
+Ctrl+Home
+ Ctrl+Del    移动启动菜单(主窗口).
+ Ctrl+End
+Ctrl+PgDn
+</verb></tscreen>
+
+<sect1>命令菜单
+
+<p>
+用 Tab 键打开或关闭命令菜单(Esc 也可以关闭菜单). 本程序包括三个命令菜单:
+主菜单, 启动记录设置菜单和系统设置菜单.
+
+<sect2>主菜单
+<p>
+<tscreen><verb>
+Help             显示帮助窗口
+About            显示关于窗口
+保  存           保存所作的修改
+启  动           启动选中的启动记录
+启动原有 MBR     启动原有的 MBR (安装 Smart BootManager以前的MBR)
+启动记录设置     打开启动记录设置菜单
+系统设置         打开系统设置菜单
+
+Quit             退出到 BIOS, 即启动下一个可启动设备
+Power Off        关闭计算机电源 (需要支持 APM 的主板)
+</verb></tscreen>
+
+<sect2>启动记录设置菜单
+<p>
+<tscreen><verb>
+信    息         显示启动记录信息
+名    称         修改启动记录的名称
+口    令         设置启动记录的口令
+日    程         设置启动记录的日程安排
+按    键         设置启动记录的预装载按键序列
+
+激    活         激活启动记录
+隐    藏         隐藏启动记录
+自动激活         设置/取消自动激活标志
+自动隐藏         设置/取消自动隐藏标志
+交换驱动器       设置/取消交换驱动器标志
+
+删    除         删除启动记录
+复    制         复制启动记录
+上    移         上移启动记录
+下    移         下移启动记录
+</verb></tscreen>
+
+<sect2>系统设置菜单
+<p>
+<tscreen><verb>
+管理口令                    设置管理口令
+管理模式                    进入/退出管理模式
+安全模式                    进入/退出安全模式
+设置缺省记录                设置缺省启动记录
+取消缺省记录                取消缺省启动记录
+设置延时                    设置启动延时
+改变启动菜单模式            改变启动菜单模式(风格), 即隐藏标志,编号,类型等.
+保存上次启动记录            设置/取消 "保存上次启动记录特性"
+
+Rescan All Boot Records     重新搜索所有可能的启动记录
+Rescan All Harddisks        重新搜索所有分区
+设置 CD-ROM I/O Ports       手工设置光驱的 I/O 端口
+Set year (fix Y2K BIOS bug) 为存在 Y2k 错误的老 BIOS 设置正确的年份.
+
+安装 Smart BootManager    将 Smart BootManager 安装到选中的驱动器中
+删除 Smart BootManager    删除当前的 Smart BootManager
+
+</verb></tscreen>
+
+<sect1>高级使用技巧<label id="高级使用技巧">
+
+<sect2>口令保护
+
+<p>
+本软件可以设置两种口令, 管理员口令和启动记录口令. 管理员口令只有一个,
+每个启动记录可以设置一个口令.
+
+如果设置了管理员口令, 屏幕右下角将显示一个 'P' 字母.
+
+SmartBtmgr 有三种安全模式:
+
+<itemize>
+<item>普通模式
+
+<p>
+这种模式中, 以下操作需要相应启动记录的口令:
+<itemize>
+<item>改变名称
+<item>改变启动记录口令
+<item>设置/取消自动激活标志
+<item>设置/取消自动隐藏标志
+<item>设置/取消交换驱动器标志
+<item>激活启动记录
+<item>隐藏启动记录
+<item>启动记录
+</itemize>
+
+所有其它操作都需要管理员口令.
+
+<item>安全锁定模式
+
+<p>
+在此模式中, 除了启动当前记录仅需要相应启动记录的口令外, 所有其它操作
+都需要管理员口令. 此模式是最安全的模式, 在设置完成后, 应该切换到这种
+模式.
+
+当 SmartBtmgr 处于这种模式时, 屏幕右下角将显示一个 'S' 字母.
+
+用 Alt-F10 键进入或退出此模式.
+
+<item>管理模式
+
+<p>
+在此模式中, 所有操作都不需要口令. 此模式仅用于配置 SmartBtmgr, 
+配置完成后应该退出此模式.
+
+当 SmartBtmgr 处于此模式时, 屏幕右下角将显示一个 'A' 字母.
+
+用 Ctrl-F10 键进入或退出此模式.
+</itemize>
+
+<sect2>延  时
+
+<p>
+在规定的延时时间内如果没有按键, 则自动启动缺省记录. 如果将延时设为 0,
+则不会进入本软件的界面, 而直接启动缺省记录. 这种情况下如果需要进入界面,
+只需在启动的时候按住 Ctrl 键. 如果将延时设为 255, 则不进行倒计时.
+
+
+<sect2>启动日程
+
+<p>
+可以给每个启动记录指定一个时间/周次范围, 在启动计算机的时候, SmartBtmgr 
+会检查当前时间, 如果当前时间正好处于某一启动记录的时间范围内, 此记录将被
+设置成缺省启动记录. 如果当前时间同时处于多个启动记录的时间段内, 则最后一个
+启动记录将被设置成缺省记录.
+
+如果启动延时为 0, 此缺省记录将被自动启动.
+
+使用 Ctrl+S 键设置或取消当前启动记录的日程时间. 时间的最小单位为分钟,
+输入格式是:
+
+<tscreen><verb>
+    hh:mm-hh:mm;days
+</verb></tscreen>
+
+第一个 hh:mm 是起始时间, 第二个 hh:mm 是终止时间. 使用 24 小时制. 
+days 域是一组从0到6的数字, 每个数字代表一天(0-6 代表周日到周六).
+如果没有 days 域, 所有天都将被选中. 例如, 假如一个启动记录需要在
+每周一到周五上午 8:00 到下午 2:30 之间启动, 则应该输入:
+
+<tscreen><verb>
+    08:00-14:30;12345
+</verb></tscreen>
+
+<sect2>预装载按键序列
+
+<p>
+在启动某个记录之前, SmartBtmgr 可以将一些按键序列装载到键盘缓冲区中.
+这个功能可以用来控制操作系统启动不同的配置. 例如, 在键盘缓冲区中存入
+F5, 将使 Windows 9x  直接进入安全模式.
+
+此功能与复制启动记录命令 (Ctrl+P) 配合使用, 可以为一个操作系统建立
+多个不同配置的启动记录.
+
+例如, 你可以为 Windows 9x 系统建立三个不同的记录, 一个进入 Windows 9x
+的普通模式, 一个直接进入命令行模式, 最后一个进入安全模式.
+
+<em>注意:</em> 缺省情况下, LILO 会在启动的时候丢弃键盘缓冲区中的所有
+按键, 所以此功能也许对你的 LILO  不起作用. 要使此功能对 LILO 有效,
+你需要重新编译安装 LILO:
+
+* 首先修改 Makefile 文件, 在 "CONFIG = ..." 一行后加上 -DNODRAIN :
+
+<tscreen><verb>
+  CONFIG = .... -DNODRAIN
+</verb></tscreen>
+
+* 然后重新编译安装 LILO:
+
+<tscreen><verb>
+  $ make; make install
+  $ lilo
+</verb></tscreen>
+
+你必须以 root 身分做这些工作.
+
+<sect2>交换驱动器
+
+<p>
+如果你想启动安装在第二块或以后分区上的 DOS, Windows 9x/NT/2000
+或其它某些系统, 这个特性将非常有用.
+
+当启动一个设置了此标记的分区的时候, 当前驱动器将和可启动的驱动器 
+(ID=128) 交换. 例如, 如果第二块硬盘(ID=129)上的分区设置了这个标志, 
+则在启动这个分区的时候, 第一块(ID=128) 和第二块(ID=129)硬盘将相互交换.
+
+<sect2>从光驱启动
+
+<p>
+Smart BootManager 支持从各种类型的 IDE ATAPI 光驱上启动系统, 甚至包括
+PCMCIA 光驱. 但是某些特殊的 IDE 控制器使用了非标准的 I/O 端口, 使
+Smart BootManager 不能正确检测出光驱. 这时, 你可以手工设置光驱的 I/O
+端口. 运行命令 "设置 CD-ROM I/O Ports"(在系统设置菜单中), 将会出现一个
+输入窗让你输入端口. 每个 IDE 控制器都有两个端口, 如 0x1F0,0x3F6
+(主 IDE 控制器). 按照以下格式输入端口数据:
+
+<tscreen><verb>
+1F0,3F6             (大写十六进制数, 中间用逗号分隔)
+</verb></tscreen>
+
+然后用命令 "Rescan All Drivers"(Ctrl-I) 找出光驱.
+
+
+<sect2>怎样在逻辑分区上安装 DOS, Windows 9x 系统?
+
+<p>
+本软件可以在一定的条件下启动安装在逻辑分区上的 DOS/Windows 9X系统. 但是
+由于 DOS/Windows 9X 的安装程序的限制, 无法直接将 DOS/Windows 9X系统安装
+到逻辑盘上.
+目前只能先在基本分区中安装 DOS/Windows 9X 系统, 然后再用 Norton Ghost或
+其它磁盘拷贝软件将其拷贝到逻辑盘上使用.
+
+如果要启动安装在逻辑分区中的 DOS/Windows 9X 系统, 需要先把前面的所有
+FAT分区隐藏起来.
+
+如果这个分区处于第二块或以后硬盘上, 还应该打开交换驱动器标记.
+
+<sect2>怎样在第二块(或以后)的硬盘上安装 DOS, Windows 9x/NT/2000 系统?
+
+<p>
+要在第二块或以后硬盘上安装这些系统, 一个最简单的办法就是把这块硬盘前面
+的所有硬盘都拆掉, 使这块硬盘成为第一块硬盘, 然后安装系统. 安装完成后再
+把其它硬盘装上. 
+
+然后你就可以用 Smart BootManager 启动那些系统了 (需要打开交换驱动器标志).
+
+<sect>兼容性
+
+<sect1>硬件兼容性
+
+<p>
+Smart BootManager 仅支持 Intel i386 平台. 它同时支持新的扩展 Int 13h
+(LBA 标准) 和老的 CHS 标准, 因此它支持大于 8G 的硬盘.
+
+<sect1>Smart Boot Manager 3.x 中已知的错误
+
+<p>
+现在已经发现以下错误:
+<itemize>
+<item>我发现某些类型的主板安装了有错误的 BIOS, 导致 Smart Boot Manager 
+      不能正确识别所有驱动器和分区.
+<item>在某些笔记本电脑或台式机上, Smart BootManager 可能会找出多个重复的
+      软盘驱动器, 以至于无法搜索出硬盘分区. 这时, 可以用仅搜索硬盘驱动器
+      命令(CTRL+H)先将所有硬盘分区搜索出来, 然后再用搜索所有驱动器命令
+      (CTRL+I)把软盘驱动器搜索出来. 如果你的硬盘小于 8G, 也可以通过关闭
+      扩展 Int13H 来解决这个问题.
+</itemize>
+
+<sect1>操作系统兼容性
+
+<p>以下系统已经经过测试, 可以由 Smart BootManager 引导:
+
+<itemize>
+<item>GNU/Linux x86
+<item>FreeBSD
+<item>BeOS
+<item>OS/2
+<item>Solaris x86 (仅测试了 Solaris 8)
+<item>Novell Netware
+<item>Microsoft DOS, Windows 9x, Windows NT 和 Windows 2000
+</itemize>
+
+其它操作系统估计也可以工作, 但我没有机会去试验它们. 如果你
+能测试它们, 请告诉我结果.
+
+<sect>需要完成的工作 
+
+<p>
+以下工作按优先级排列:
+
+I. 当前版本需要做的工作:
+
+<itemize>
+<item>更多的文档.
+  因为我的英语水平很差, 所以还有许多文档没有完成. 我希望有人能帮助我写
+  一些文档.
+<item>为多种操作系统编写更灵活的安装程序, 例如:
+  Windows 9X, Linux, FreeBSD 和 DOS.
+<item>为多种操作系统编写 Makefiles 和/或 automake/autoconf 脚本.
+  我还没有学习怎样编写 Makefile 文件. 希望能有人帮我做这个工作.
+<item>为多个系统编写工具以实现 Smart Boot Manager 的 "Direct Boot" 特性.
+<item>改错和优化.
+<item>更多不同语言和外观的主题.
+</itemize>
+
+II. 未来版本中要加入的特性:
+
+<itemize>
+<item>在线安装和卸载. (已完成)
+<item>支持以周次为单位的启动日程. (已完成)
+<item>支持非标准键盘 (azerty, dvorak 等). (已完成)
+<item>简单易用的命令界面. (已完成)
+<item>交换驱动器. (已完成)
+<item>预装载按键序列 (给操作系统传送按键序列). (已完成)
+<item>启动日程 (在不同时间自动启动不同的操作系统). (已完成)
+<item>支持从 CD-ROM 启动.
+<item>使用压缩技术以缩小代码的尺寸.
+<item>鼠标支持 (这个能实现么?)
+</itemize>
+
+你如果有什么新想法和建议, 请告诉我, 或帮我实现它们.
+
+<sect>联系作者
+
+<p>
+如果你有什么好的想法或建议, 请告诉我! 如果你对这个软件作了某些改进, 或
+制作一些好看的主题, 请别忘了给我一份, 我会考虑把它们加入下一版本中.
+
+我的电子邮件地址是: <url url="mailto:suzhe@gnuchina.org" name="suzhe@gnuchina.org">
+或: <url url="mailto:su_zhe@sina.com" name="su_zhe@sina.com">
+
+其他作者的地址, 请参见 <ref id="作者"> 一节.
+
+<sect>鸣  谢
+
+<p>
+我要感谢所有帮助和支持我开发这个程序的人, 特别是:
+
+<p>
+Chris Li (<url url="mailto:chrisl@gnuchina.org" name="chrisl@gnuchina.org">)
+<p>
+Linuxrat (<url url="mailto:linuxrat@263.net" name="linuxrat@263.net">)
+<p>
+Fr閐閞ic Bonnaud (<url url="mailto:tux.le.pengouin@free.fr" name="tux.le.pengouin@free.fr">)
+<p>
+Zak Meekins (<url url="mailto:zmeekins@email.sjsu.edu" name="zmeekins@email.sjsu.edu">)
+<p>
+Gnagno (<url url="mailto:gnagno@tiscalinet.it" name="gnagno@tiscalinet.it">)
+<p>
+Patrick van Brakel (<url url="mailto:patrickb@wfw.wtb.tue.nl" name="patrickb@wfw.wtb.tue.nl">)
+<p>
+njh (<url url="mailto:njh@hawthorn.csse.monash.edu.au" name="njh@hawthorn.csse.monash.edu.au">)
+<p>
+Lukas Kumpera (<url url="mailto:xkumpera@poli.feld.cvut.cz" name="xkumpera@poli.feld.cvut.cz">)
+<p>
+Risko Gergely (<url url="mailto:risko@njszki.hu" name="risko@njszki.hu">)
+<p> 
+Bill Hults (<url url="mailto:ehults@itofvt.net" name="ehults@itofvt.net">)
+<p>
+Sam Varghese (<url url="mailto:sam@gnubies.com" name="sam@gnubies.com">)
+<p>
+Udo Jocher (<url url="mailto:udo@udoj.org" name="udo@udoj.org">)
+<p>
+Benoit Mortier (<url url="mailto:opensides@caramail.com" name="opensides@caramail.com">)
+<p>
+
+以及北京拓林思公司 (TurboLinux) 和清华大学 SMTH BBS Linux 版中的其他许多朋友.
+
+<sect>作  者<label id="作者">
+
+<p>
+* 核心程序和一些工具:
+<p>
+  Suzhe (email: <url url="mailto:suzhe@gnuchina.org" name="suzhe@gnuchina.org">)
+<p>
+* 安装程序和 Makefile:
+<p>
+  Lonius (email: <url url="mailto:november@video.mdc.tsinghua.edu.cn" name="november@video.mdc.tsinghua.edu.cn">)
+<p>
+* 法语主题:
+<p>
+Benoit Mortier. (<url url="mailto:benoit.mortier@hitention.com" name="benoit.mortier@hitention.com">)
+<p>
+Fr閐閞ic Bonnaud (<url url="mailto:tux.le.pengouin@free.fr" name="tux.le.pengouin@free.fr">)
+<p>
+* 德语主题:
+<p>
+Dirk Knop (<url url="mailto:dknop@gwdg.de" name="dknop@gwdg.de">)
+<p>
+* 匈牙利语主题:
+<p>
+Lenart Janos (<url url="lenart@njszki.hu" name="lenart@njszki.hu">)
+<p>
+* 俄语主题:
+<p>
+Victor O`Muerte (<url url="mailto:vomuerte@mail.ru" name="vomuerte@mail.ru">)
+<p>
+* 捷克语主题:
+<p>
+brz (<url url="mailto:brz@post.cz" name="brz@post.cz">)
+<p>
+* 西班牙语主题:
+<p>
+Manuel Clos (<url url="mailto:llanero@jazzfree.com" name="llanero@jazzfree.com">)
+<p>
+* 葡萄牙语主题
+<p>
+Andre Maldonado (<url url="mailto:agm@clix.pt" name="agm@clix.pt">)
+<p>
+* Smart Boot Manager UNIX Configurator
+<p>
+Risko Gergely (<url url="mailto:risko@njszki.hu" name="risko@njszki.hu">)
+<p>
+* ATAPI 驱动和 NASM 编程辅助工具 debug, helptool:
+Christopher Li (<url url="mailto:chrisl@gnuchina.org" name="chrisl@gnuchina.org">)
+<p>
+* Y2k 问题补丁
+Santiago Garcia Mantinan (<url url="mailto:manty@i.am" name="manty@i.am">)
+
+</article>

@@ -1,0 +1,52 @@
+  The following features are sorted by priority:
+
+  I. Features should be add to this major version:
+
+
+  o  More Documentation.  Because of my poor english, the documents are far
+     from complete.  I wish someone could help me writing some
+     documentation.
+
+  o  Flexible and smart installation programs for multiple OSes, such as
+     Windows 9X, Linux, FreeBSD and DOS.
+
+  o  Makefiles and/or automake/autoconf scripts for multiple OSes.  I
+     have not learned to write Makefile. I hope someone could help me.
+
+  o  Utilities for multiple OSes that realize the "Direct Boot" feature
+     in SmartBtmgr.
+
+  o  Bug fix and optimize.
+
+  o  More themes for different languages and lookings.
+
+
+  II. Features for later versions:
+
+  o  Online installation and uninstallation. ( DONE )
+
+  o  More powerful weekly boot schedule. ( DONE )
+
+  o  Support non-standard keyboards (azerty, dvorak etc.). ( DONE )
+
+  o  Easy-to-use Command Menu. ( DONE )
+
+  o  Swap driver ID. ( DONE )
+
+  o  Preload keystrokes (Send keystrokes to OS). ( DONE )
+
+  o  Boot Schedule (Auto boot different OS at different time). ( DONE )
+
+  o  Support Booting from CD-ROM. ( DONE )
+
+  o  Use compression technology to reduce program size. ( DONE )
+
+  o  Filesystem driver (ext2, FAT, etc.).
+
+  o  Linux kernel loader.
+
+  o  Build-in fdisk utility.
+
+  If you have any new ideas and suggestions please tell me, or help me
+  implementing them.
+

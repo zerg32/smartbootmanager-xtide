@@ -1,0 +1,59 @@
+                          Smart Boot Manager
+
+              version 3.x Copyright (c) Suzhe 1996-2000
+
+
+HOW TO COMPILE Smart BootManager:
+---------------------------------
+
+I. What softwares are needed to compile SmartBtmgr?
+
+ For Linux user, you need gcc, make and nasm. For DOS user, you 
+ must have DJGPP (a DOS porting of GCC), and nasm.
+ You must also have UCL library(http://wildsau.idv.uni-linz.ac.at/mfx/ucl.html) 
+ to compile Smart BootManager.
+
+II. How to compile?
+
+ Edit the Makefile, change the line that including 'TARGET=xxx'.
+ If you are using Linux, change the line to TARGET=linux, if you
+ are using DOS, change it to TARGET=dos.
+
+ Then just type make to compile it.
+
+ the executable file is placed in release directory.
+
+ type make install to install it. For linux, the default binary 
+ dir is /usr/sbin/, the default documentation dir is /usr/doc/btmgr, 
+ and the default theme dir is /usr/share/btmgr , if you want to change it, 
+ edit Makefile.
+
+III. How to use it?
+
+ See README file for details.
+
+IV. How to customize and install the theme file.
+
+  You can start your own theme file from one of the two standard theme 
+  files provided by this program. These are placed in manager/themes/
+  dir.
+
+  In order to change it, please refer to the comments in the theme file.
+
+  You must have NASM (Netwide ASM) to compile the theme file.
+  The compile method is very simple, for example, assume the new 
+  theme file is mytheme.asm, the following command will generate a
+  binary version of mytheme.asm:
+
+    nasm -fbin -o mytheme.bin mytheme.asm
+
+  Now you can use installation program to install Smart BootManager 
+  with the new theme:
+
+  for linux:
+  sbminst -t mytheme.bin -d /dev/hda
+
+  or for dos:
+  sbminst -t mytheme.bin -d 128
+
+

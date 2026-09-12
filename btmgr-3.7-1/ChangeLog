@@ -1,0 +1,146 @@
+ChangeLog of Smart Boot Manager
+===============================
+
+Copyright (C) 2000 Suzhe <su_zhe@sina.com>
+This is free software, you can redistribute it and/or modify it under the
+terms of the GNU General Public License version 2.
+
+This program comes with ABSOLUTELY NO WARRANTY!
+
+** Version: 3.7 release 1   Date: Feb 10th 2001
+ * Compression technology was used to reduce the code size.
+ * Changed the command "Rescan All Drivers" to "Rescan All Boot Records".
+ * Changed the command "Rescan All Harddrives" to "Rescan All Partitions".
+ * Added a "-c" (disable CD-ROM booting) option into installer program.
+ * Added a Y2k workaround patch for old buggy BIOS.
+ * Added a compile option "STRICT_PART_CHECK" to control the partition check
+   policy used by SBM, see Makefile for details.
+
+** Version: 3.6 release 4   Date: Dec 5th 2000
+ * Bugfixed version.
+
+** Version: 3.6 release 3   Date: Sept 14th 2000
+ * Added four special boot records:
+   Previous MBR ---- Boot the original MBR.
+   Quit to BIOS ---- Let BIOS boot the next bootable device.
+   Power Off    ---- Turn the power off.
+   Reboot       ---- Reboot the computer.
+ * Upgraded the installation program to support SCSI driver.
+ * Fixed some bugs in CD-ROM Booting module.
+
+** Version: 3.6 release 2   Date: Sept 14th 2000
+ * Fixed a serious bug in CD-ROM Booting module which prevents Win9x from
+   initializing the CD-ROM.
+
+** Version: 3.6 release 1   Date: Sept 6th 2000
+ * Added a French theme.
+ * Updated the Czech theme and documentation.
+ * Grammer Correction for English documentation.
+ * Code clean-ups.
+
+** Version: 3.6 pre 6       Date: Sept 3rd 2000
+ * Code optimization and bugfix.
+
+** Version: 3.6 pre 5       Date: Sept 2nd 2000
+ * Code optimization and bugfix.
+
+** Version: 3.6 pre 4       Date: Aug 31th 2000
+ * Added a Spanish theme.
+ * Enhanced the input dialog box.
+ * Fixed a bug of CD-ROM Booting.
+
+** Version: 3.6 pre 2       Date: Aug 28th 2000
+ * Booting from IDE CD-ROM is OK.
+
+** Version: 3.5 release 3   Date: Aug 12th 2000
+ * Added a Russian theme.
+ * Added a Czech theme and a Czech documentation.
+ * Draw the driver's name instead of its number.
+ * Hide Number, Type as well as Flags from Boot Menu.
+
+** Version: 3.5 release 2   Date: Aug 12th 2000
+ * Added a Hungarian theme.
+ * Added a German theme.
+ * Some Grammer Corrections.
+ * Some bugfixes.
+ * Upgraded the convert.c and sbminst.c
+
+** Version: 3.5 release 1   Date: Aug 9th 2000
+ * Online installation and uninstallation.
+ * Weekly Boot Schedule.
+ * Boot Previous MBR.
+ * Support Non-standard keyboard (azerty, qwertz, dvorak, ansi-dvorak).
+ * Toggle Extended Int 13H.
+ * Many bugfixes.
+
+** Version: 3.4 release 1   Date: July 12th 2000
+ * Boot from harddisk's MBR.
+ * Remember the last booted record.
+
+** Version: 3.3 release 2   Date: July 7th 2000
+ * Some bugfixes.
+
+** Version: 3.3 release 1   Date: Jun 17th 2000
+ * Added easy-to-use command menu (TAB).
+ * Some bugfixes.
+
+** Version: 3.2 release 1   Date: Jun 4th  2000
+ * Added Swap driver ID feature (CTRL-X).
+ * Added Show/hide flags switch (CTRL-F).
+ * Fixed some bugs.
+ * Updated the documentations.
+
+** Version: 3.1 release 2   Date: May 25th 2000
+ * Added Power Off function (CTRL-F12).
+ * Added a theme in French (not integraged into the setup program yet).
+ * Updated the documentations.
+
+** Version: 3.1 release 1   Date: May 9th 2000
+ * Updated the documentations.
+
+** Version: 3.1 beta 3      Date: May 7th 2000
+ * Added two other Secure Modes.
+ * Added Boot Record Information Box.
+
+** Version: 3.1 beta 2      Date: May 6th 2000
+ * Added Scroll Bar
+ * Fixed some bugs
+
+** Version: 3.1 beta 1      Date: May 4th 2000
+ * Added Boot Schedule Feature.
+ * Added Preload Keystrokes Feature.
+ * Added Duplicate and Move Boot Record Feature.
+
+** Version: 3.0 release 3   Date: Apr 9th 2000
+ * Fixed a bug in DOS installation program that would destroy 
+   partition table.
+ * Added Solaris partition id in order to recognize the Solaris
+   partition correctly.
+ * Upgraded the documentation.
+
+** Version: 3.0 release 2   Date: Apr 3rd 2000
+ * Added a simple user guide.
+
+** Version: 3.0 release 1   Date: Mar 30th 2000
+ * Added Makefiles and Linux installation program.
+ * Fixed the bug that cannot save changes.
+ * Added INSTALL file and complete the README file.
+ * Added a new dos installation program which is derived from linux version.
+
+** Version: 3.0 beta 3   Date: Feb 27th 2000
+ * Change the method of partition hiding/unhiding.
+   Now only the partitions with certain types can be hidden.
+   Added 0x10 to the type to hide the partition,
+   instead of setting the type to 0xA0.
+ * Added a feature:
+   when scan the boot record, the records of primary partitions
+   with certain partition types will be marked as auto active.
+ * Fixed some bugs.
+
+** Version: 3.0 beta 2   Date: Feb 21th 2000
+ * Change the structure of font_data.
+ * Added Chinese language theme.
+ * Fixed some bugs.
+
+** Version: 3.0 beta 1   Date: Feb 16th 2000
+ * the first beta version of this software.

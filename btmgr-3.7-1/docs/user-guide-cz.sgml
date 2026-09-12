@@ -1,0 +1,1003 @@
+<!doctype linuxdoc system>
+
+<article>
+
+<!-- Title information -->
+
+<title>Zakladni Uzivatelska Prirucka Smart Boot Manager 3.x
+<author>Suzhe, <tt/suzhe@gnuchina.org/  Translation: brz, <tt/brz@post.cz/
+<date>v0.10cz, 15 uno 2001, v den sv. Jiriny
+<abstract>
+Tato dokumentace je strucnym uvodem do problematiky pouziti Smart Boot Manageru 3.x
+</abstract>
+
+<!-- Table of contents -->
+<toc>
+
+<!-- Begin the document -->
+
+<sect>Uvod
+
+<p>
+Strucny uvod k Smart Boot Manageru 3.x
+
+<sect1>Copyright
+
+<p>
+Smart Boot Manager je free software; lze ho redistribuovat a/nebo
+modifikovat podle podminek danych licenci GNU General Public License version 2, 
+nebo jakoukoli pozdejsi licenci publikovanou Free Software Foundation; 
+
+Tento program je siren v nadeji, ze bude pro Vas pouzitelny, ale
+BEZ JAKEKOLI ZARUKY.
+Nahlednete prosim do GNU General Public License.
+
+Kopii GNU General Public License byste meli ziskat spolu s 
+timto programem; jestlize ji nemate, napiste si o ni na Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+<sect1>Co je Smart Boot Manager 3.x a co neni?
+
+<p>
+Smart Boot Manager nebo kratce SmartBtmgr (SBM), je na OS nezavisly
+boot manager - program, ktery je zaveden BIOSem pred jakymkoli operacnim
+systemem a umozni zvolit, ktery OS se nabootuje.
+
+Tzn. jako treba OS/2 Boot Manager a mnoho dalsich podobnych sw, napr.
+System Commander, Bootit, Bootstar, PQBoot atd.
+
+Ale <em/NENI/ zavadec OS, neni nahrada LILO a ani jinych OS zavadecu.
+Jinymi slovy - musite pouzit LILO (nebo jiny podobny program), aby bylo
+mozno nabootovat Linux, zatimco pouziti SmartBtmgr Vam da jednoduchy
+a snadno pouzitelny dialog k bootu ruznych OS.
+
+<sect1>Vlastnosti Smart Boot Manageru 3.x
+
+<p>
+SmartBtmgr je navrzen jako lehce ovladatelny, pruzny a maly.
+Ma prehledne zpracovany oknoidni interface, online napovedu a jednoduche
+ovladaci menu. Nepotrebuje zadne konfiguracni soubory ci programy,
+vsechny funkce jsou provadeny samotnym programem, napriklad mohou
+byt automaticky prohledany vsechny disky a partitisny pri prvnim
+spusteni, lze je ale take prohledat kdykoli pozdeji.
+Jmeno kazdeho bootovaciho zaznamu (boot record) muze byt timto interfejsem modifikovano.
+Instalacni program jiz potom neni potreba vice spoustet
+(pokud neni neco kupr. poskozeno). Muze byt instalovan nejen na harddisk,
+ale take kamkoli na vymenny disk. 
+
+SmartBtmgr je dosti maly na to, aby mohl byt nainstalovan na prvni stopu 
+(first track) harddisku do skryteho sektoru a neni pro nej treba zadne specialni
+partitisny. Je tedy absolutne nezavisly na OS, na rozdil od napriklad
+System Commanderu, OS/2 BootManageru anebo PQBootu.
+Linux neni samozrejme podminkou.
+
+Ackoli je maly, je ultramimoradne mocny. Ma mnoho uzitecnych prvku,
+jako napriklad zabezpeceni heslem, boot s prodlevou, primy boot
+(stejne jako "single-shot autoboot" z Vyberu-OS), vicejazycne 
+uzivatelske rozhrani, planovac bootu, nastaveni klavesovych zkratek,
+predani klavesovych uhozu bootovavsimu OS, nastaveni swapu, atd.
+
+Styl a jazyk rozhrani je velice snadne prizpusobit. Soubor Interfejsu je
+nezavisly na programu a tak muze byt menen bez potreby rekompilovat 
+program. K dispozici s distribuci Smart BootManageru je jiz nekolik
+souboru rozhrani k dispozici: Cinsky, Anglicky, Francouzsky, Nemecky,
+ Madarsky, Rusky, Spanelsky a jako perla na zaver: i Cesky.
+
+<p>
+Souhrnem:
+
+Hlavni vlastnosti Smart Boot Manageru jsou:
+
+<itemize>
+<item>Velice mala velikost cili velka nepatrnost
+<p>Velikost Smart Boot Manager je dost mala na to, aby mohl byt instalovan
+do prvni stopy harddisku (do skryte stopy).
+<p>
+<item>Absolutni nezavislost na OS
+<p>Smart Boot Manager <em/NEPOTREBUJE/ zadnou vlastni partitisnu. Ma 
+online instalacni a odinstalacni funkce, takze je absolutne nezavisly na OS.
+<p>
+<item>Jednoduchost pouziti
+<p>Smart Boot Manager ma oknoidni interfejs, online napovedu a jednoduse
+ovladatelne prikazove menu, a <em/NEPOTREBUJE/ zadne konfiguracni soubory.
+<p>
+<item>Prohledavani disku a partitisen
+<p>Smart Boot Manager muze automaticky prohledat vsechny harddisky, mechaniky
+vymennych disku a vsechny partitisny ze kterych je mozno bootovat.
+<p>
+<item>Kvalitni ochrana heslem
+<p>Dva typy hesel a tri bezpecnostni mody davaji velice dobre moznosti 
+konfigurace bezpecnosti.
+<p>
+<item>Defaultni boot
+<p>Lze nastavit casovou prodlevu, po jejimz uplynuti se automaticky
+nabootuje z predvoleneho bootovaciho zaznamu, pokud neni mezitim stlacena zadna klavesa.
+<p>
+<item>Planovac bootu
+<p>Bootuje jiny disk nebo partitisnu automaticky nejen po danem case dne
+a/nebo i podle rozdilnych dni.
+<p>
+<item>Bootovani z CD-ROM
+<p>Smart BootManager podporuje boot ze vsech druhu IDE ATAPI CD-ROM,
+vcetne PCMCIA CD-ROM.
+<p>
+<item>Nastaveni predani Klavesovych uhozu
+<p>Posila nastavene klavesove uhozy operacnimu systemu, ktery se bude bootovat.
+<p>
+<item>Prohozeni ID disku
+<p>Muze bootovat DOS/Windows 9x/Windows NT a jine OS z primarni partitisny 
+na <em/JAKEMKOLI/ harddisku, nikoli pouze na prvnim. 
+<p>
+<item>Snadna uzivatelska uprava souboru theme
+<p>Kdokoli si muze upravit soubor theme velice snadno, temer vse na obrazovce muze
+byt  presnadne zmeneno, vcetne barev, popisu, atd.
+</itemize>
+Mnozstvi dalsich 'ficur' zde neni zmineno, jsou popsany detailne dale v dokumentaci.
+
+<sect>Jak zkompilovat a uzivatelsky upravit Smart Boot Manager 3.x?
+
+<p>
+Tato cast uvadi do problematiky kompilace a uzivatelskych uprav
+Smart Boot Manageru 3.x.
+
+<sect1>Jak kompilovat Smart Boot Manager 3.x?
+
+<sect2>Jaky software je treba ke kompilaci SmartBtmgr?
+
+<p>
+Uzivatele Linuxu potrebuji <em/gcc/, <em/make/ a <em/nasm/ (Netwide Assembler,
+ URL: <url url="http://www.web-sites.co.uk/nasm/" name="http://www.web-sites.co.uk/nasm/">). 
+Uzivatele DOSu, musi mit <em/DJGPP/ (DOSovsky port GCC, URL:
+<url url="http://www.delorie.com/djgpp/" name="http://www.delorie.com/djgpp/">),
+ a <em/nasm/.
+
+<p>
+Take potrebujete UCL kompresni knihovnu
+(URL: <url url="http://wildsau.idv.uni-linz.ac.at/mfx/ucl.html" 
+name="http://wildsau.idv.uni-linz.ac.at/mfx/ucl.html">) 
+ke kompilaci Smart BootManageru.
+
+
+<sect2>Jak to cele zkompilovat?
+
+<p>
+Editujte Makefile a zmente radek obsahujici <tt/'TARGET_OS=xxx'/.
+Jestlize pouzivate Linux, zmente radek na <tt/TARGET_OS=linux/, jestli
+pouzivate DOS, zmente ho na <tt/TARGET_OS=dos/.
+
+Potom jen napiste <em/make/ a uz se vesele kompiluje.
+
+Vysledne soubory jsou pak umisteny v adresari release/ 
+
+K provedeni instalace napiste <em/make install/ . Pro linux je defaultni binarni instalace
+provedena do adresare /usr/sbin/, theme bude ulozeno v adresari /usr/share/btmgr/
+a dokumentace je umistena v /usr/share/doc/btmgr.
+Jestlize chcete umisteni zmenit, zeditujte soubor Makefile.
+
+<sect1>Jak uzivatelsky upravit soubor theme?
+
+<p>
+Svuj theme soubor si muzete vytvorit z jednoho ze standardnich
+theme souboru, ktere jsou prilozeny k programu. Naleznete je v 
+adresari manager/themes/ 
+
+Zmeny 'theme' souboru provedte prosim dle komentaru v nem obsazenych.
+
+Ke kompilaci theme musite mit <em/nasm/.
+Postup kompilace je trivialni, napriklad predpokladejme
+novy theme soubor se jmenem mojetheme.asm. Potom nasledujici prikaz vygeneruje 
+binarni verzi z mojetheme.asm:
+
+<tscreen><verb>
+% nasm -fbin -o mojetheme.bin mojetheme.asm
+</verb></tscreen>
+
+Jestlize chcete kompilovat soubor theme s nestandardnim rozlozenim
+klaves, pouzijte prikaz:
+
+<tscreen><verb>
+% nasm -DKEYMAP_XXX -fbin -o mojetheme.bin mojetheme.asm
+</verb></tscreen>
+
+Kde KEYMAP_XXX muze byt jeden z nasledujich ctyr symbolu:
+
+<tscreen><verb>
+KEYMAP_AZERTY           (AZERTY Keyboard)
+KEYMAP_QWERTZ           (QWERTZ Keyboard)
+KEYMAP_DVORAK           (Dvorak Keyboard)
+KEYMAP_DVORAK_ANSI      (ANSI Dvorak Keyboard)
+</verb></tscreen>
+
+Ujistete se, ze keymap soubory (azerty.kbd ...) jsou v aktualnim adresari kompilace.
+
+Nyni muzete pouzit instalacni program k instalaci Smart BootManageru
+s novym 'theme' souborem (viz sekce <ref id="Instalace Smart Boot Manageru">)
+
+Pro Linux:
+
+<tscreen><verb>
+% sbminst -t mojetheme.bin -d /dev/hda
+</verb></tscreen>
+
+nebo pro DOS:
+
+<tscreen><verb>
+> sbminst -t mojetheme.bin -d 128
+</verb></tscreen>
+
+
+<sect>Jak nainstalovat Smart Boot Manager 3.x?<label id="Instalace Smart Boot Manageru">
+
+<sect1>Pouziti instalacniho programu.
+
+<p>
+V tuto chvili jsou k dispozici instalacni programy pro Linux a DOS. Instalacni
+program je umisten v adresari installer/. Pro DOS i Linux je pouze jeden
+zdrojovy soubor a pouziti je velice proste:
+
+Pouziti instalacniho programu:
+
+<tscreen><verb>
+   sbminst [-t theme] [-d drv] [-b backup_file] [-u backup_file]
+
+    -t theme     Vyberte theme ktere bude pouzito:
+                   us = Anglicke theme       de = Nemecke theme 
+                   hu = Madarske theme       zh = Chinske theme 
+                   ru = Ruske theme          cz = Ceske theme 
+                   es = Spanelske theme      fr = Francozske theme 
+                   pt = Portugalske theme 
+                   nebo zadejte jmeno uzivatelsky upraveneho theme..
+
+  -t us, zh, cz    Vyber theme ktere bude pouzito.
+                    (us = anglicke theme, zh = cinske theme, cz = ceske theme),
+                    nebo jmeno jineho uzivatelsky upraveneho theme.
+
+   -d drv           nastavi misto, ktere budete chtit pouzit k instalaci Boot Manageru;
+                    pro Linux:
+                      /dev/fd0 je prvni mechanika vymennych disku
+                      /dev/hda je prvni harddisk
+                      /dev/sda je prvni SCSI harddisk
+                    pro DOS:
+                      0   je prvni mechanika vymennych disku
+                      128 je prvni harddisk
+
+   -c             zruseni bootovani z CD-ROM;
+
+   -b backup_file   zazalohuje data ktera budou prepsana pro pripadnou budouci odinstalaci.
+   -u backup_file   odinstaluje Smart BootManager, muze byt pouzit pouze jako jediny prepinac.
+   -y             instalace nebude pokladat zadne dotazy ani vypisovat varovani.
+
+</verb></tscreen>
+
+Napriklad prikaz <em>sbminst -t cz -d /dev/hda -b sbm-bak.dat</em>
+pod Linuxem nainstaluje ceskou verzi na prvni harddisk a zazalohuje
+originalni data do souboru sbm-bak.dat.
+
+Pouziti prikazu <em/sbminst -u sbm-bak.dat/ opet vse odinstaluje.
+
+
+<sect1>Instalacni poznamky pro jednotlive OS.
+
+<sect2>Poznamky pro Linux
+
+<p>
+Jestlize hodlate bootovat pomoci Smart BootManageru, musite naistalovat
+LILO do Superbloku dane Linuxove partitisny namisto do MBR!
+
+Zeditujte soubor /etc/lilo.conf, a zmente radek obsahujici "boot=/dev/hda"
+na "boot=/dev/hda?", kde /dev/hda? je partitisna na ktere je umisten kernel.
+Pak nezapomente spustit /sbin/lilo.
+
+
+<sect2>Poznamky pro Windows NT, Windows 2000, FreeBSD, OS/2 a Solaris
+
+<p>
+Tyto OS byste meli instalovat do primarni partitisny prvniho harddisku,
+i kdyz druhy (a dalsi) harddisk a logicke partitisny jsou take SmartBtmgrem
+podporovany (pouzitim prvku 'Zmen ID disku').
+Ale nedoporucujeme Vam to tak delat.
+
+Meli byste zapnout flag 'Auto Aktivni' pro tyto partitisny. Jestlize to neudelate,
+mohou nastat pri bootovani techto OS problemy.
+
+Jestlize jste instalovali tyto OS na druhy nebo dalsi harddisk, meli
+by jste take zapnout 'Zmen ID disku' (CTRL+X).
+
+
+<sect2>Poznamky pro DOS, Windows 9X
+
+<p>
+Tyto "OS" byste meli instalovat do primarni partitisny prvniho harddisku.
+Ackoli je mozne tyto "OS" instalovat na logickou partitisnu nebo na druhy
+a dalsi harddisk, nedoporucujeme to. Vice viz cast <ref id="Pokrocile pouziti">
+
+
+<sect>Jak pouzivat Smart Boot Manager 3.x?
+
+<p> 
+Tato cast jest strucnym uvodem do pouziti Smart Boot Manageru 3.x.
+
+<sect1>Jak to cele spustit?
+
+<p>
+Po instalaci restartujte pocitac. Jestli jste SmartBtmgr nainstalovali
+na vymenny disk, vlozte ho do mechaniky a nabootujte z nej.
+Jestli je vse v poradku, zobrazi se hlavni nabidka programu.
+Pro online napovedu stisknete F1.
+
+<sect1>Interfejs Smart Boot Manageru 3.x
+
+<p>
+Uprostred obrazovky je Boot menu, ve kterem je seznam vsech partitisen
+a vymennych disku nalezenych pri startu SmartBtmgr.
+Kazda partitisna nebo vymenny disk je nazvana Bootovaci Zaznam, kupr:
+
+<tscreen><verb>
+          Flagy     Cislo  Typ      Jmeno
+     ---------------------------------------------
+       ---------D  FD0  0  NONE     Floppy
+       ---------D  HD0  0  NONE     Harddisk
+       ---------D  HD1  0  NONE     Harddisk
+       ---------D  CD0  0  NONE     CD-ROM
+     * ----aAh---  HD1  1  FAT32    Primary 1
+       p-k----Hl-  HD1  5  FAT32    Logical 5
+       -S---A----  HD1  1  Linux    Primary 1
+       ---X-A----  HD1  2  FAT32    Primary 2
+</verb></tscreen>
+
+Prvni zaznam na vyse uvedenem priklade je disketova mechanika (A:), 
+druhy a treti jsou dva harddisky (jejich MBR), dalsi zaznam je IDE CD-ROM.
+Dalsi zaznam je prvni partitisna prvniho haddisku, atd.
+
+Vyznam kazdeho ze sloupcu Boot menu:
+
+<tscreen><verb>
+ Flags   : Vyznam atributu bootovacich zaznamu (Flagy):
+
+           * : Znaci ze toto je defaultni boot zaznam.
+               Kdyz vyprsi casova prodleva, nebo je 
+               stisknuta klavesa ESC, nabootuje se automaticky
+	       tento zaznam.
+ 
+           p : Znaci ze zaznam je chranen heslem.
+               Zmena hesla se provede po stisku klavesy F9
+               Tato ochrana je neucinna, pokud neni nastaveno
+               rootovo heslo. Root heslo se nastavi stiskem klavesy F10.
+               (Toto root heslo nema ani trosicku nic spolecneho
+                s rootovym heslem v Linuxu!)
+
+           S : Znaci, ze boot zaznam byl pridan do tabulky planovace
+               bootu. Kdyz cas doplyne k hodnote casu tohoto zaznamu, 
+               SmartBtmgr nastavi tento zaznam jako defaultni.
+               Stisk Ctrl-S nastavuje a rusi planovac u aktualniho 
+               zaznamu.
+
+           k : Znaci, ze tento bootovaci zaznam ma nastaveno
+               predani klavesovych uhozu do bufferu klavesnice
+               pred nabootovanim. Stisk Ctrl-K nastavuje a rusi
+               pouziti tohoto predani.
+
+           X : Znaci nastaveni ID flagu disku nebo partitisny.
+               Zatimco se bootuje tento zaznam, jeho prislusejici
+               disk bude zamenen s bootovacim zaznamem disku 
+               stejneho typu. Napriklad jestlize je nastaven tento flag 
+               pro partitisnu druheho harddisku (drv id=129),
+               disk s id=128 (0x80) a id=129 (0x81) budou
+               prohozeny, zatimco se bude bootovat tato partitisna.
+               Tento prvek je velmi uzitecny, jestlize budete chtit
+               bootovat DOS/Windows 9X/NT z druheho nebo dalsich disku.
+               Stisk Ctrl+X prohazuje nastaveni tohoto flagu.
+          
+           a : Znaci, ze tento bootovaci zaznam bude automaticky 
+               oznacen jako aktivni, kdyz se bude bootovat.
+               Obvykle primarni partitisna s instalovanym 
+               DOS/Windows 9x/Windows NT by mela mit nastaven tento flag. 
+               Stisk F6 prohazuje nastaveni tohoto flagu.
+
+           A : Znaci, ze tato partitisna byla oznacena jako aktivni.
+               Stisk F4 prohodi jeji nastaveni 'aktivni'.
+
+           h : Znaci, ze tento bootovaci zaznam bude automaticky
+               skryt, kdyz budou bootovat jine zaznamy.
+               Toto ma vyznam pouze u FAT a NTFS partitisen. 
+               Stisk F7 prohazuje nastaveni h flagu.
+
+           H : Znaci, ze tato partitisna bude vzdy skryta.
+               Stisk F5 prohazuje nastaveni H flagu.
+
+           l : Znaci, ze tento boot zaznam je logicka partitisna.
+
+           D : Znaci, ze tento boot zaznam je diskova jednotka,
+               tedy harddisk (MBR) nebo mechanika vymenneho disku.
+
+ Cislo   : Cislo disku nebo partitisny tohoto zaznamu.
+           Levy sloupec je cislo disku, pravy sloupec
+           cislo partitisny. Pro vymenny disk je cislo disku
+           FD0 nebo FD1 (A: nebo B:), cislo partitisny je vzdy 0.
+           Pro partitisny je cislo prvniho disku HD0, cislo partitisny
+           je stejne jako v Linuxove konvenci.
+           Cislo prvniho CD-ROMu je CD0.
+
+ Typ     : Typ partitisny. Pro harddisk je to vzdy NONE.
+
+ Jmeno   : Jmeno bootovaciho zaznamu. Pro zmenu jmena stisknete F3.
+</verb></tscreen>
+
+
+<p>
+Globalni flagy a informace Smart Boot Manageru, ktere jsou zobrazeny 
+v pravem dolnim rohu obrazovky vypadaji nasledovne:
+
+<tscreen><verb>
+ |HD0|PSALE| 28: 30
+</verb></tscreen>
+
+Prvni pole (HD0) je BIOS ID aktualniho bootovaciho disku,
+druhe pole (PSALE) je globalni flag, ktery znamena:
+
+<tscreen><verb>
+P  :  Administratorske heslo je nastaveno
+S  :  Smart Boot Manager je v Bezpecnem Modu.
+A  :  Smart Boot Manager je v  Administratorskem modu.
+L  :  Prvek "Pamatuj si posledni bootovaci zaznam" je zapnut.
+E  :  Extended Int 13H je zapnut. 
+</verb></tscreen>
+
+Treti pole (28: 30) je pocitadlo casu prodlevy.
+
+<sect1>Klavesove zkratky
+
+<p>
+SmartBtmgr ma tyto klavesove zkratky:
+
+<tscreen><verb>
+       F1    Ukaze okno s napovedou
+  Ctrl+F1    Ukaze okno 'O aplikaci'
+       F2    Ulozi zmeny
+       F3    Prejmenuje bootovaci zaznam
+       F4    Oznaci primarni partitisnu jako aktivni
+       F5    Skryje/Zobrazi partitisnu
+       F6    Zapne/vypne 'Auto Aktivni' (jen pro primarni partitisny)
+       F7    Prepni 'Auto Skryj' (jen pro partitisny)
+       F8    Nastavi defaultni bootovaci zaznam
+ Shift+F8    Zrusi defaultni bootovaci zaznam
+       F9    Zmeni heslo bootovaciho zaznamu
+      F10    Zmeni rootovo heslo
+ Ctrl+F10    Spusti/Vypne Administratorsky mod
+  Alt+F10    Spusti/Vypne Bezpecny mod
+
+   Ctrl+D    Vymaze bootovaci zaznam
+   Ctrl+T    Nastavi cas prodlevy (sec)
+   Ctrl+I    Znovu prohleda vsechny bootovaci zaznamy
+   Ctrl+H    Znovu prohleda vsechny partitisny
+
+   Ctrl+P    Zduplikuje bootovaci zaznam
+   Ctrl+U    Posune bootovaci zaznam nahoru
+   Ctrl+N    Posune bootovaci zaznam dolu
+
+   Ctrl+S    Nastavi / Zrusi planovac bootovaciho zaznamu
+   Ctrl+K    Nastavi / Zrusi predani klavesovych uhozu
+
+   Ctrl+X    Prohodi ID flag disku
+
+   Ctrl+F    Zmeni styl Boot Menu.
+
+   Ctrl+L    Zapne / Vypne zapamatovani si posledniho bootovaneho
+             zaznamu (Jestlize je tento prvek zapnut, v pravem spodnim 
+             rohu obrazovku bude Cervene 'L')
+
+   Ctrl+Q    Ukonceni a skok do BIOSu
+
+  Up,Down    Posun vyberoveho radku
+ / nebo ?    Zobrazi informacni okno
+    Enter    Nabootuje
+
+ Keypad +    Zmena Video modu, dostupne video mody jsou
+             80x25 and 90x25.
+
+     Home
+   Delete    Posune okno Boot Menu.
+      End
+ PageDown
+
+ Ctrl+F12    Vypnuti pocitace.
+
+ Tab(Alt)    Otevreni / Zavreni prikazoveho menu.
+    Alt-S    Otevreni / Zavreni Menu Systemovych Nastaveni.
+    Alt-R    Otevreni / Zavreni Menu Nastaveni Zaznamu.
+
+</verb></tscreen>
+
+<p>
+Kdyz je prikazove menu otevrene, mohou byt pouzity nasledujici
+klavesove zkratky:
+<tscreen><verb>
+  Up,Down    Posun vyberoveho radku prikazoveho okna.
+    Enter    Provede vybrany prikaz.
+
+  Ctrl+Up    Posun vyberoveho radku prikazoveho okna.
+Ctrl+Down 
+
+     Home
+   Delete    Posun prikazoveho menu.
+      End
+ PageDown
+
+Ctrl+Home
+ Ctrl+Del    Posun prikazoveho menu.
+ Ctrl+End
+Ctrl+PgDn
+</verb></tscreen>
+
+<sect1>Prikazova menu
+<p>
+K otevreni nebo zavreni prikazoveho menu pouzijte klavesu Tab. 
+Zde jsou dostupna tri prikazova menu:
+Hlavni Menu, Menu Nastaveni Zaznamu, Menu Systemovych Nastaveni.
+
+<sect2>Hlavni Menu
+<p>
+<tscreen><verb>
+Napoveda            Otevreni okna s napovedou
+O aplikaci          Otevreni okna 'O aplikaci'
+Uloz zmeny          Ulozeni zmen
+Nabootuj            Nabootuje vybrany bootovaci zaznam.
+Nabootuj origMBR    Nabootuje originalni MBR (originalni, tzn. pred instalaci btmgr)
+
+Nastaveni zaznamu   Otevre Menu Nastaveni Zaznamu
+Systemova nastaveni Otevre Menu Systemovych Nastaveni
+
+Quit                Vyskoci do BIOSu (Zkusi nabootovat dalsi bootovaci zarizeni)
+Vypni pocitac       Vypne pocitac (Nutno mit zakladni desku APM)
+</verb></tscreen>
+
+<sect2>Menu Nastaveni Zaznamu
+<p>
+<tscreen><verb>
+Informace             Ukaze informace o bootovacim zaznamu
+Jmeno                 Zmeni jmeno bootovaciho zaznamu
+Heslo                 Zmeni heslo bootovaciho zaznamu
+Planovac              Nastavi/Zrusi cas planovace
+KlofyKlaves           Nastavi/Zrusi predani uhozu klaves
+
+Oznac Aktivni         Oznaci bootovaci zaznam jako aktivni
+Skryj/Zobraz          Skryje/Zobrazi bootovaci zaznam
+Auto Aktivni          Nastavi/Zrusi flag 'Auto Aktivni'
+Auto Skryj            Nastavi/Zrusi flag 'Auto Skryj'
+Prohod ID disku       Nastavi/Zrusi prohozeni flagu ID disku
+
+Vymaz                 Vymaze bootovaci zaznam
+Zduplikuj             Zduplikuje bootovaci zaznam
+Posun nahoru          Posune bootovaci zaznam nahoru
+Posun dolu            Posune bootovaci zaznam dolu
+</verb></tscreen>
+
+<sect2>Menu Systemovych Nastaveni
+<p>
+<tscreen><verb>
+Root Heslo                   Nastavi Rootovo(Administratorske) Heslo
+Spust/Vypni Admin Mod        Spusti/Vypne Administratorsky mod
+Spust/Vypni Bezpecny mod     Spusti/Vypne Bezpecny mod
+Nastav defaultni zaznam      Nastavi vybrany bootovaci zaznam jako defaultni
+Zrus defaultni zaznam        Zrusi defaultni bootovaci zaznam
+Nastav cas prodlevy          Nastavi cas prodlevy
+Zmen Styl Boot Menu          Meni styl Boot menu (Skryje Flagy, Cisla, Typ v Boot Menu)
+Zapni/Vypni Zapamatuj posledni    Prohodi zapamatovani si posledniho bootovaciho zaznamu. There is a
+                             Vespod obrazovky se objevi cervene 'L' jako indikator zapnuti. 
+Zapni/Vypni Extended Int13H  Zapina/Vypina BIOS Extended Int13H.
+
+Projdi vsechny disky         Proskenuje vsechny disky a znovuvytvori bootovaci menu.
+Projdi vsechny harddisky     Proskenuje vsechny harddisky a znovuvytvori bootovaci menu.
+Nastav CD-ROM I/O Porty      Dialog k rucnimu nastaveni I/O portu IDE CD-ROMu.
+Nastav rok (fix Y2K)         Nastavi spravny rok pro prastare BIOSy.
+
+Instaluj Smart BootManager   Installuje Smart BootManager na vybrany disk
+Deinstaluj Smart BootManager Deinstaluje aktualni Smart BootManager
+</verb></tscreen>
+
+<sect1>Pokrocile pouziti<label id="Pokrocile pouziti">
+
+<sect2>Ochrana heslem
+<p>
+Moznosti ochrany heslem SmartBtmgr jsou velmi siroke. Jedno 
+root heslo muze byt nastaveno pro administratora. Rozdilny pristup
+chraneny heslem muze byt pridelen kazdemu bootovacimu zaznamu k 
+restrikci pristupu pro kazdy z nich.
+
+Jestlize bylo nastaveno rootovo heslo, v pravem dolnim rohu obrazovky
+se zobrazi znak 'P'.
+
+K dispozici jsou tyto tri bezpecnostni mody:
+
+<itemize>
+<item>Normalni mod
+
+<p>
+  V tomto modu nasledujici operace potrebuji heslo bootovaciho zaznamu
+<itemize>
+<item>Zmen jmeno
+<item>Zmen heslo bootovaciho zaznamu
+<item>Zapni/Vypni flag 'Auto Aktivni'
+<item>Zapni/Vypni flag 'Auto Skryj'
+<item>Zapni/Vypni prohozeni ID flagu disku
+<item>Aktivni bootovaci zaznam
+<item>Skryj/Zobraz bootovaci zaznam
+<item>Nabootuj zaznam
+</itemize>
+
+  Vsechny dalsi operaci vyjma "Uloz zmeny" potrebuji rootovske heslo.
+
+<item>Bezpecny Mod
+
+<p>
+  V tomto modu, vsechny operace, vyjma "Nabootuj zaznam" potrebuji
+rootovske heslo.  Heslo bootovaciho zaznamu je potrebne k nabootovani
+zaznamu. Protoze je tento mod vice bezpecny, meli byste do nej prepnout
+SmartBtmgr po dokonceni konfigurace.
+Pokud je SmartBtmgr prepnut do tohoto modu, v pravem dolnim rohu
+obrazovky je zobrazen znak 'S'.
+
+ Pro prepnuti do nebo z tohoto modu stisknete Alt-F10.
+
+<item>Administratorsky mod
+
+<p>
+ V tomto modu zadna operace nepotrebuje heslo! Tento mod
+je pouzit ke konfiguraci SmartBtmgr.
+ Kdyz SmartBtmgr je prepnut do tohoto modu, v pravem dolnim rohu obrazovky
+je zobrazen znak 'A'.
+
+ Pro prepnuti do nebo z tohoto modu stisknete Ctrl-F10.
+</itemize>
+
+<sect2>Cas prodlevy
+
+<p>
+Jestlize neni behem prodlevy stisknuta zadna klavesa, defaultni
+bootovaci zaznam bude nabootovan automaticky.
+
+Jestlize je cas prodlevy nula, nebude zobrazeno uzivatelske 
+rozhrani a defaultni bootovaci zaznam bude nabootovan automaticky.
+Podrzenim klavesy Ctrl pri rebootu pocitace se znovu vstoupi 
+do uzivatelskeho rozhrani SmartBtmgr.
+
+Jestlize je cas prodlevy nastaven na 255, je defaultni boot 
+bez casoveho limitu.
+
+<sect2>Planovac Bootu
+
+<p>
+Bootovaci zaznam muze byt prirazen casovemu planovaci.
+Pokud cas prekroci casove rozmezi v casovem planovaci, 
+SmartBtmgr nastavi prislusny bootovaci zaznam jako defaultni
+pro vsechny dalsi booty pocitace.
+
+Jestlize byl cas prodlevy nastaven na nulovou hodnotu,
+tento bootovaci zaznam bude bootovan automaticky.
+
+Pro nastaveni casoveho udaje bootovaciho zaznamu v planovaci pouzijte Ctrl-S.
+
+Minimalni jednotka casoveho planovace je minuta a format musi byt:
+
+
+<tscreen><verb>
+    hh:mm-hh:mm;dny
+</verb></tscreen>
+
+Prvni hh:mm je pocatecni cas, druhe hh:mm je koncovy cas.
+Nastaveni pouziva 24 hodinovy format. Polozka 'dny' je nastavena od
+0 do 6, kazde cislo znaci den (0-6, znaci Nedele-Sobota).
+Jestlize neni pole dni vyplneno, jsou vybrany vsechny dny.
+Napriklad jestlize bootovaci zaznam ma byt mezi 08:00 a 14:30 kazdy den
+od pondeli do patku, casove rozmezi bude zadano takto:
+
+<tscreen><verb>
+    08:00-14:30;12345
+</verb></tscreen>
+
+<sect2>Predani Klavesovych Klofnuti neboli Uhozu.
+
+<p>
+Smart Btmgr muze uchovavat klavesove uhozy v bufferu klavesnice predtim
+nez bude nabootovan OS. Tento prvek muze byt pouzit k rizeni konfigurace bootu OS.
+Napriklad preda stisk Alt-F5 do bufferu klavesnice pred nabootovanim
+Windows 9x, a tak lze prejit primo do prikazoveho rezimu.
+
+Pouzitim teto moznosti s Ctrl-P (Zduplikovani bootovaciho zaznamu)
+dohromady, muzete vytvorit vicenasobny bootovaci zaznam pro jeden OS,
+kazdy bootovaci zaznam pritom bude zavadet OS do jineho rezimu.
+
+Napriklad muzete vytvorit tri bootovaci zaznamy pro Windows 9x,
+jeden normalni bootovaci zaznam, dalsi bude bootovat do bezpecnostniho 
+rezimu a posledni do DOSu.
+
+Pouzitim Ctrl-K nastavujete nebo zakazujete tento prvek.
+
+Kdyz budete nastavovat predani klavesovych uhozu, uprostred obrazovky
+se objevi panel, ktery ukazuje kod naposledy stlacene klavesy a kolik
+klaves jiz bylo stisknuto. SmartBtmgr muze ulozit maximalne 13 klaves
+pro kazdy bootovacich zaznam. Stisknete &lt;Scroll Lock&gt; k ukonceni vstupu.
+
+
+<em>Poznamka:</em> LILO defaultne zrusi obsah klavesnicoveho bufferu pri 
+svem startu. Pak ovsem predani uhozu nefachci: musite prekompilovat LILO
+chcete-li predavani pouzivat:
+
+* Editujte Makefile, pridejte "-DNODRAIN" na konec radku 
+"CONFIG = ...":
+
+<tscreen><verb>
+  CONFIG = .... -DNODRAIN
+</verb></tscreen>
+
+* Zrekompilujte a znovu nainstalujte LILO:
+
+<tscreen><verb>
+  $ make; make install
+  $ lilo
+</verb></tscreen>
+
+Samozrejme musite byt root.
+
+<sect2>Prohozeni ID disku
+
+<p>
+Tento prvek shledate velice uzitecnym, jestlize budete chtit bootovat DOS,
+Windows 9x/NT/2000 nebo jiny OS z druheho nebo dalsiho harddisku.
+
+Jestlize zapnete tento flag pro partitisnu, ktera je na druhem nebo
+dalsim disku, tento disk bude prohozen s bootovacim diskem (ID = 0x80)
+zatimco bude tato partitisna bootovana. Pak OS pobezi jako by byl 
+na prvnim harddisku.
+
+<sect2>Online instalace a deinstalace
+
+<p>
+Jestlize chcete instalovat SmartBtmgr 'on air', nejdriv vyberte boot zaznam
+disku a pak pouzijte prikaz "Instalace Smart BootManageru" 
+(v Menu Nastaveni Systemu), az se objevi dialog k potvrzeni, stisknete Y 
+k pokracovani instalace.
+
+Muzete SmartBtmgr instalovat jen na MBR, instalace na partitisnu
+neni povolena.
+
+<p>
+Pokud chcete odinstalovat aktualni SmartBtmgr. pouze pouzijte
+prikaz "Deinstalace Smart BootManageru" (v Menu Nastaveni Systemu).
+Ale opatrne - tato deinstalace muze obnovit jen oblast MBR, jakekoli
+dalsi skryte sektory zabrane Smart BootManagerem nebudou obnoveny.
+
+<sect2>Bootovani z CD-ROM
+
+<p>
+Smart BootManager podporuje boot z vetsiny druhu IDE ATAPI CD-ROMu,
+vcetne PCMCIA CD-ROMu. Muze se stat, ze zvlastni IDE radice, ktere mohou
+mit rozdilne I/O porty, sbmgr nenalezne. V tom pripade nastaveni provedte rucne. 
+Spustenim prikazu "Nastav CD-ROM I/O porty" (v menu Systemovych nastaveni),
+se objevi dialogovy panel do ktereho lze zadat I/O porty.
+Kazdy IDE radic ma dva I/O porty, kupr. 0x1F0,0x3F6 
+(master IDE radic). Zadajte tyto I/O presne dle formatu:
+
+<tscreen><verb>
+ 1F0,3F6                  (Verzalky Hex cisel s carkou uprostred)
+</verb></tscreen>
+
+Po zadani I/O portu, musite pouzit prikaz "Projdi vsechny disky" (Ctrl-I) k nalezeni CD-ROM.
+
+Pokud bootujete CD disk s multi boot imagemi, objevi se menu k vyberu prislusneho image k bootu.
+
+
+<sect2>Jak instalovat DOS, Windows 9x na logickou FAT partitisnu?
+
+<p>
+SmartBtmgr dovoli bootovat DOS/Windows 9X z logicke FAT partitisny
+za jistych predpokladu. Ale setup DOS/Windows 9X nezvladne 
+tyto na logickou FAT partitisnu nainstalovat.
+
+Nevim jak instalovat DOS/Windows 9X na logickou FAT
+partitisnu primo, ale muzete ji premenit z kopie DOS/Windows 9X
+primarni FAT partitisny do logicke partitisny pouzitim dalsich
+utilit jako je kupr. Norton Ghost.
+
+Aby bylo mozne nabootovat takto naistalovane DOS/Windows 9X do logicke
+FAT partitisny, je nutne skryt vsechny FAT partitisny pred ni.
+
+Proto muzete prehodit nastaveni prepinace 'Auto Skryj' kazde FAT partitisny,
+jestlize vas nudi pokazde je znovu a znovu skryvat.
+
+Jestlize je tato partitisna na druhem nebo dalsim harddisku, prepinac
+'Prohozeni ID disku' by take mel byt zapnuty.
+
+<sect2>Jak instalovat DOS, Windows 9x/NT/2000 na druhy (nebo dalsi) HD?
+
+<p>
+Jedna ze znamych metod instalace DOS/Windows 9X na druhy (nebo dalsi)
+HD je odpojit vsechny dalsi harddisky zapojene pred timto harddiskem 
+a udelat tedy tento harddisk prvnim harddiskem a pak instalovat OS.
+Po nainstalovani OS pripojte opet vsechny harddisky zpet a pak pouzijte
+Smart BootManager k nabootovani OS z druheho (nebo dalsiho) harddisku
+prehozenim prepinace ID flagu partitisny.
+
+<sect>Kompatibilita
+
+<sect1>Hardwarova kompatibilita
+
+<p>
+Smart BootManager podporuje pouze platformu Intel i386.
+Extended Int 13h (LBA standard) pro velke disky (pres 8GB) je podporovana.
+Stary CHS standard je take podporovan.
+
+<sect1>Zname chyby Smart Boot Manageru 3.0
+
+<p>
+Zde jsou zname chyby v posledni verzi:
+<itemize>
+<item>Byly odhaleno, ze nektere motheboardy maji chybny BIOS, ktery zapricini
+      selhani prohledavani vsech disku a partitisen.
+</itemize>
+
+<sect1>Kompatibilni Operacni Systemy
+
+<p>
+Nasledujici OS jsou otestovany pro pouziti se Smart BootManagerem:
+
+<itemize>
+<item>GNU/Linux x86
+<item>FreeBSD
+<item>BeOS
+<item>OS/2
+<item>QNX
+<item>Solaris x86 (byl testovan jen Solaris 8)
+<item>Novell Netware
+<item>Microsoft DOS, Windows 9x, Windows NT and Windows 2000
+</itemize>
+
+Jine operacni systemy by mely byt take podporovany, ale nebyly
+zatim odzkouseny. Jestli to s nimi zkusite vy, napiste mi prosim vysledek.
+
+<sect>TODOlist (KUDES - K UDElani Seznam)
+
+<p>
+Nasledujici prvky jsou serazeny dle dulezitosti:
+
+I. Prvky, ktere by mely byt pridany do teto hlavni verze:
+
+<itemize>
+<item>Vice Dokumentace
+  Z duvodu me (nasi) spatne anglictiny, dokumentace neni ani zdaleka hotova.
+  Snad nekdo dokumentaci pomuze dopsat.
+<item>Pruzne a chytre instalacni programy pro vicero OS,
+  jako Windows 9X, Linux, FreeBSD a DOS.
+<item>Makefile a/nebo automake/autoconf scripty pro vsechny OS.
+  Nenaucil jsem se psat Makefile. Doufam, ze mi nekdo pomuze.
+<item>Utility pro vicero OS k realizaci "Primeho bootu" ve SmartBtmgru.
+<item>Odstranit chyby a vse optimalizovat.
+<item>Vytvorit vice theme pro vice jazyku.
+</itemize>
+
+II. Prvky pro dalsi verze:
+
+<itemize>
+<item>Online instalace and deinstalace. ( HOTOVO )
+<item>Dokonalejsi tydeni planovac bootu. ( HOTOVO )
+<item>Podpora nestandardnich klavesnic (azerty, dvorak atd.). ( HOTOVO )
+<item>Lehce pouzitelne prikazove menu. ( HOTOVO )
+<item>Prohazovat ID harddisku. ( HOTOVO )
+<item>Poslat klavesove uhozy bootovavsimu OS. ( HOTOVO )
+<item>Planovac bootu (Automaticky bootovat ruzne OS v ruzny cas). ( HOTOVO )
+<item>Podpora bootu z CD-ROM ( HOTOVO )
+<item>Pouziti komprese k redukci velikosti programu. ( HOTOVO )
+<item>Driver filesystemu (ext2, FAT, atd.)
+<item>Linux kernel loader
+<item>Vestavet utilitu fdisk
+</itemize>
+
+Jestlize mate jakekoli nove napady nebo pripominky, 
+prosim sdelte mi je nebo mi je pomozte naimplementovat.
+
+<sect>Kontakt na Autora
+
+<p>
+Jestli mate nejake velkolepe napady nebo pripominky, nevahejte
+mi je rict! Jestlize mate nejake zlepseni pro tento program nebo
+nejake uzasne theme, take mi je muzete dat a ja je mohu pridat do
+pristiho vydani nove verze.
+
+Moje adresa je: <url url="mailto:suzhe@gnuchina.org" name="suzhe@gnuchina.org">
+anebo: <url url="mailto:su_zhe@sina.com" name="su_zhe@sina.com">
+  Jazykova Pozn: piste prosim v anglictine.
+
+
+Podivejte se v sekci <ref id="autori"> na adresy dalsich autoru.
+
+<sect>Diky
+
+<p>
+Rad bych podekoval vsem lidem, kteri pomohli a podporili me pri
+vyvoji tohoto programu, zvlaste pak:
+
+<p>
+Chris Li (<url url="mailto:chrisl@gnuchina.org" name="chrisl@gnuchina.org">)
+<p>
+Linuxrat (<url url="mailto:linuxrat@263.net" name="linuxrat@263.net">)
+<p>
+Frédéric Bonnaud (<url url="mailto:tux.le.pengouin@free.fr" name="tux.le.pengouin@free.fr">)
+<p>
+Zak Meekins (<url url="mailto:zmeekins@email.sjsu.edu" name="zmeekins@email.sjsu.edu">)
+<p>
+Gnagno (<url url="mailto:gnagno@tiscalinet.it" name="gnagno@tiscalinet.it">)
+<p>
+Patrick van Brakel (<url url="mailto:patrickb@wfw.wtb.tue.nl" name="patrickb@wfw.wtb.tue.nl">)
+<p>
+njh (<url url="mailto:njh@hawthorn.csse.monash.edu.au" name="njh@hawthorn.csse.monash.edu.au">)
+<p>
+Lukas Kumpera (<url url="mailto:xkumpera@poli.feld.cvut.cz" name="xkumpera@poli.feld.cvut.cz">)
+<p>
+Risko Gergely (<url url="mailto:risko@njszki.hu" name="risko@njszki.hu">)
+<p>
+Bill Hults (<url url="mailto:ehults@itofvt.net" name="ehults@itofvt.net">)
+<p>
+Sam Varghese (<url url="mailto:sam@gnubies.com" name="sam@gnubies.com">)
+<p>
+Udo Jocher (<url url="mailto:udo@udoj.org" name="udo@udoj.org">)
+<p>
+Benoit Mortier (<url url="mailto:opensides@caramail.com" name="opensides@caramail.com">)
+<p> 
+a vsichni dalsi v TurboLinux a Linux Boardu SMTH BBS Tsinghua University.
+
+<sect>Autori<label id="autori">
+
+<p>
+* Kernel programy a dalsi utility:
+<p>
+  Suzhe (email: <url url="mailto:suzhe@gnuchina.org" name="suzhe@gnuchina.org">)
+<p>
+* Instalacni program a Makefile:
+<p>
+  Lonius (email: <url url="mailto:november@video.mdc.tsinghua.edu.cn" name="november@video.mdc.tsinghua.edu.cn">)
+<p>
+* Francouzske theme:
+<p>
+Benoit Mortier. (<url url="mailto:benoit.mortier@hitention.com" name="benoit.mortier@hitention.com">)
+<p>
+Frédéric Bonnaud (<url url="mailto:tux.le.pengouin@free.fr" name="tux.le.pengouin@free.fr">)
+<p>
+* Nemecke theme:
+<p>
+Dirk Knop (<url url="mailto:dknop@gwdg.de" name="dknop@gwdg.de">)
+<p>
+* Madarske theme:
+<p>
+Lenart Janos (<url url="mailto:lenart@njszki.hu" name="lenart@njszki.hu">)
+<p>
+* Ruske theme:
+<p>
+Victor O`Muerte (<url url="mailto:vomuerte@mail.ru" name="vomuerte@mail.ru">)
+<p>
+* Ceske theme
+<p>
+brz (<url url="mailto:brz@post.cz" name="brz@post.cz">)
+<p>
+* Smart Boot Manager UNIX Configurator:
+<p>
+Risko Gergely (<url url="mailto:risko@njszki.hu" name="risko@njszki.hu">)
+<p>
+* Spanelske theme:
+<p>
+Manuel Clos (<url url="mailto:llanero@jazzfree.com" name="llanero@jazzfree.com">)
+<p>
+* Portugalske theme
+<p>
+Andre Maldonado (<url url="mailto:agm@clix.pt" name="agm@clix.pt">)
+<p>
+* Smart Boot Manager UNIX Configurator:
+<p>
+Risko Gergely (<url url="mailto:risko@njszki.hu" name="risko@njszki.hu">)
+<p>
+* ATAPI ovladac a debug/helptool pro NASM:
+Christopher Li (<url url="mailto:chrisl@gnuchina.org" name="chrisl@gnuchina.org">)
+<p>
+* Y2k workaround patch
+Santiago Garcia Mantinan (<url url="mailto:manty@i.am" name="manty@i.am">)
+
+</article>

@@ -1,0 +1,1320 @@
+  Simple User Guide for Smart Boot Manager 3.x
+  Suzhe, suzhe@gnuchina.org
+  V0.10, 10th Feb 2001
+
+  This simple documentation briefly introduces the usage of Smart Boot
+  Manager 3.x.
+  ______________________________________________________________________
+
+  Table of Contents
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  1. Introduction
+
+     1.1 Copyright
+     1.2 What is Smart Boot Manager 3.x and what it's not?
+     1.3 The features of Smart Boot Manager 3.x
+
+  2. How to compile and customize Smart Boot Manager 3.x?
+
+     2.1 How to compile Smart Boot Manager 3.x?
+        2.1.1 What software is needed to compile SmartBtmgr?
+        2.1.2 How to compile it?
+     2.2 How to customize and install the theme file?
+
+  3. How to install Smart Boot Manager 3.x?
+
+     3.1 The usage of installation program.
+     3.2 Installation notes for specific OSes.
+        3.2.1 Notes for Linux
+        3.2.2 Notes for Windows NT, Windows 2000, FreeBSD, OS/2 and Solaris
+        3.2.3 Notes for DOS, Windows 9X
+
+  4. How to use Smart Boot Manager 3.x?
+
+     4.1 How to run it?
+     4.2 The Smart Boot Manager 3.x interface
+     4.3 The hot keys
+     4.4 Command menus
+        4.4.1 Main Menu
+        4.4.2 Record Settings Menu
+        4.4.3 System Settings Menu
+     4.5 Advanced usage
+        4.5.1 Password protection
+        4.5.2 Delay time
+        4.5.3 Boot Schedule
+        4.5.4 Preload Keystrokes
+        4.5.5 Swap drive ID
+        4.5.6 Online installation and uninstallation
+        4.5.7 Boot from CD-ROM
+        4.5.8 How to install DOS, Windows 9x into a logical FAT partition?
+        4.5.9 How to install DOS, Windows 9x/NT/2000 into the second (or later) HD?
+
+  5. Compatibility
+
+     5.1 Hardware compatibility
+     5.2 Known bugs of Smart Boot Manager 3.0
+     5.3 Compatible OSes
+
+  6. TODO list
+
+  7. Contacting the author
+
+  8. Thanks
+
+  9. Authors
+
+
+
+  ______________________________________________________________________
+
+  1.  Introduction
+
+  This section is the brief introduction of Smart Boot Manager 3.x.
+
+
+
+
+  1.1.  Copyright
+
+  Smart Boot Manager is a free software; you can redistribute it and/or
+  modify it under the terms of the GNU General Public License as
+  published by the Free Software Foundation; either version 2 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+
+  1.2.  What is Smart Boot Manager 3.x and what it's not?
+
+  Smart Boot Manager or briefly SmartBtmgr (SBM), is an OS independent
+  Boot Manager - a program that is loaded by the bios before any
+  operating system and allows you to choose which operating system to
+  boot.
+
+  It's like OS/2 Boot Manager and many other similar programs, e.g.
+  System Commander, Bootit, Bootstar, PQBoot etc.
+
+  But it's NOT an OS Loader; it's not a replacement for LILO or other OS
+  Loaders. In other words, you must use LILO (or other similar programs)
+  to boot Linux while using SmartBtmgr to give you an easy to use
+  interface to Boot Multiple OSes.
+
+
+  1.3.  The features of Smart Boot Manager 3.x
+
+  SmartBtmgr is intended to be easy to use, flexible and small. It has a
+  nice windows-like user interface, online help and an easy-to-use
+  command menu. It needs no configuration file or program. All actions
+  can be done from within the program; for example, it can automatically
+  search all drives and partitions when it first runs, or you can let it
+  research them later. The name of each boot record can be modified in
+  its interface.  The installation program is only used after once,
+  unless the program is damaged. It can be installed not only onto a
+  hard disk but also to a floppy.
+
+  SmartBtmgr is small enough that it can be installed into the first
+  track of a hard disk (the hidden sectors), no special partition is
+  needed.  It is absolutely OS independent, unlike System Commander,
+  OS/2 BootManager and PQBoot. Linux is of course not required.
+
+  Although it is very small, it is very powerful. It has many other
+  useful features, such as password protection, auto delay boot, direct
+  boot (same as the "single-shot autoboot" of Choose-OS), multi-language
+  user interface, boot schedule, preload keystrokes, swap drive id, etc.
+
+  The style and language of its interface is easily customized. The
+  interface datafile is independent from the program, so it can be
+  changed, and the program does not need to be recompiled. There are two
+  interface datafiles supplied with this version, one is Chinese and
+  another is English.
+
+
+  Summarize:
+
+  The Main Features of Smart Boot Manager are:
+
+  o  Very Small Size
+
+     The size of Smart Boot Manager is small enough that it can be
+     installed into the first track of a hard disk(the hidden track).
+
+
+  o  Absolutely OS Independent
+
+     Smart Boot Manager does NOT need any partitions, and it has online
+     installation and uninstallation functions, so it's absolutely OS
+     independent.
+
+
+  o  Easy to Use
+
+     Smart Boot Manager has a window like interface, online help and
+     easy-to-use command menu, it does NOT need any configuration file.
+
+
+  o  Smart Search Drives and Partitions
+
+     Smart Boot Manager can automatically search out all of the
+     floppy/hard drives and partitions that could be booted.
+
+
+  o  Powerful Password Protection
+
+     Two types of password and three security modes can give you very
+     flexible security configuration.
+
+
+  o  Auto Delay Boot
+
+     Boot particular drive or partition automatically if none of keys
+     are pressed within a certain number of seconds.
+
+
+  o  Boot Schedule
+
+     Boot different drive or partition automatically at different times
+     of a day and/or different days.
+
+
+  o  Booting from CD-ROM
+
+     Smart BootManager supports booting from all kinds of IDE ATAPI CD-
+     ROM, including PCMCIA CD-ROM.
+
+
+  o  Preload Keystrokes
+
+     Send some keystrokes to the Operating System being booted.
+
+
+  o  Swap drive id
+
+     Can boot DOS/Windows, 9x/Windows, NT and some other OSes from the
+     primary partition on ANY hard disk, not only the first HD.
+
+  o  Easily Customized Theme file
+
+     Anyone can customize the theme file easily, almost all of the
+     screen elements can be changed, including the colors, strings etc.
+
+     There are many other features not listed out, see following
+     documentation for details.
+  2.  How to compile and customize Smart Boot Manager 3.x?
+
+  This section introduces the method of compiling and customizing Smart
+  Boot Manager 3.x.
+
+
+  2.1.  How to compile Smart Boot Manager 3.x?
+
+  2.1.1.  What software is needed to compile SmartBtmgr?
+
+  For Linux users, you need gcc, make and nasm (Netwide Assembler, URL:
+  http://www.web-sites.co.uk/nasm/ <http://www.web-sites.co.uk/nasm/>).
+  For DOS users, you must have DJGPP (a DOS porting of GCC, URL:
+  http://www.delorie.com/djgpp/ <http://www.delorie.com/djgpp/>), and
+  nasm.
+
+  You also must have UCL compression library (URL:
+  http://wildsau.idv.uni-linz.ac.at/mfx/ucl.html
+  <http://wildsau.idv.uni-linz.ac.at/mfx/ucl.html>) to compile Smart
+  BootManager.
+
+
+  2.1.2.  How to compile it?
+
+  Edit the Makefile, change the line that including 'TARGET_OS=xxx'.  If
+  you are using Linux, change the line to TARGET_OS=linux, if you are
+  using DOS, change it to TARGET_OS=dos.
+
+  Then just type make to compile it.
+
+  the executable file is placed in release/ directory.
+
+  type make install to install it. For linux, the default binary
+  installation dir is /usr/sbin/, themes will be stored into
+  /usr/share/btmgr/ and documentation is placed in /usr/share/doc/btmgr/
+  if you want to change them, edit the Makefile.
+
+
+  2.2.  How to customize and install the theme file?
+
+  You can start your own theme file from one of the two standard theme
+  files provided with the program. These are placed in manager/themes/
+  dir.
+
+  In order to change it, please refer to the comments in the theme file.
+
+  You must have nasm to compile the theme file.  The compile method is
+  very simple, for example, assume that the new theme file is
+  mytheme.asm, the following command will generate a binary version of
+  mytheme.asm:
+
+
+
+       % nasm -fbin -o mytheme.bin mytheme.asm
+
+
+
+
+  If you want to compile the theme file with a non-standard keyboard
+  map, use the command:
+
+
+
+       % nasm -DKEYMAP_XXX -fbin -o mytheme.bin mytheme.asm
+
+
+  Where KEYMAP_XXX can be one of the following four symbols:
+
+
+
+       KEYMAP_AZERTY           (AZERTY Keyboard)
+       KEYMAP_QWERTZ           (QWERTZ Keyboard)
+       KEYMAP_DVORAK           (Dvorak Keyboard)
+       KEYMAP_DVORAK_ANSI      (ANSI Dvorak Keyboard)
+
+
+
+
+  Be sure that the keymap files (azerty.kbd ...) are in the current
+  directory.
+
+  Now you can use installation program to install Smart Boot Manager
+  with the new theme(see section ``''):
+
+  for linux:
+
+
+
+       % sbminst -t mytheme.bin -d /dev/hda
+
+
+
+
+  or for dos:
+
+
+
+       > sbminst -t mytheme.bin -d 128
+
+
+
+
+
+
+  3.  How to install Smart Boot Manager 3.x?
+
+  3.1.  The usage of installation program.
+
+  Now there is an installation program for Linux and DOS. The
+  installation programs are placed in the installer/ dir. There is only
+  one source file for DOS and Linux, and the usage is very similar:
+
+  The usage of installation program is:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     sbminst [-t theme] [-d drv] [-b backup_file] [-u backup_file]
+
+     -t theme     select the theme to be used, in which the theme could be:
+                     us = English theme       de = German theme
+                     hu = Hungarian theme     zh = Chinese theme
+                     ru = Russian theme       cz = Czech theme
+                     es = Spanish theme       fr = French theme
+                     pt = Portuguese theme
+
+                     or a filename of user customized theme.
+
+     -d drv       set the drive that you want to install Smart BootManager on;
+                  for Linux:
+                     /dev/fd0 is the first floppy driver,
+                     /dev/hda is the first IDE harddisk driver.
+                     /dev/sda is the first SCSI harddisk driver.
+                  for DOS:
+                     0   is the first floppy drive
+                     128 is the first hard drive;
+
+     -c             disable CD-ROM booting feature;
+
+     -b backup_file backup the data that will be overwrited for
+                    future uninstallation;
+
+     -u backup_file uninstall Smart BootManager, should be used alone;
+
+     -y             do not ask any question or warning.
+
+
+
+
+  for example, use command 'sbminst -t zh -d /dev/hda -b sbm-bak.dat'
+  under linux to install a Chinese version to the first hard disk and
+  backup the original data to file sbm-bak.dat.
+
+  Use command 'sbminst -u sbm-bak.dat' to uninstall it.
+
+
+
+  3.2.  Installation notes for specific OSes.
+
+  3.2.1.  Notes for Linux
+
+  If you want to boot linux with Smart BootManager, you must install
+  LILO into the Superblock of your linux partition, instead of into MBR!
+
+  Edit /etc/lilo.conf file, change the line that include "boot=/dev/hda"
+  to "boot=/dev/hda?", /dev/hda? is the partition where your linux
+  kernel placed. Then run /sbin/lilo.
+
+
+  3.2.2.  Notes for Windows NT, Windows 2000, FreeBSD, OS/2 and Solaris
+
+  You should install these OSes into a primary partition of the first
+  hard disk. Although the second (and later) hard disk and logical
+  partitions may also be supported by SmartBtmgr (by using 'Swap drive
+  ID' feature) I don't suggest doing so.
+
+  You should turn on the Auto Active flag of these partitions. If not,
+  errors might occur while booting the OS.
+
+  If you installed these OSes into the second or later hard disk, you
+  also should turn on the Swap drive ID flag (CTRL+X).
+
+
+  3.2.3.  Notes for DOS, Windows 9X
+
+  You should install these OSes into a primary partition of the first
+  hard disk. Although it is possible to install DOS and Windows 9X into
+  a logical partition or the second (or later) hard disk, it is not
+  recommended. See section ``'' for more information.
+
+
+  4.  How to use Smart Boot Manager 3.x?
+
+
+  This section briefly introduces the usage of Smart Boot Manager 3.x.
+
+
+  4.1.  How to run it?
+
+  After installation, please reboot the computer. If it was installed
+  onto a floppy disk, please insert the disk into the floppy drive and
+  boot from this disk. The main interface of this program will appeared
+  if everything is correct. Press F1 for online help.
+
+
+  4.2.  The Smart Boot Manager 3.x interface
+
+  There is a Boot Menu at the center of the screen containing a list of
+  all partitions and floppy drives found by SmartBtmgr. I call each
+  partition (or floppy drive) a "Boot Record", for example:
+
+
+
+                 Flags    Number  Type     Name
+            ---------------------------------------------
+              ---------D  FD0  0  NONE     Floppy
+              ---------D  HD0  0  NONE     Harddisk
+              ---------D  HD1  0  NONE     Harddisk
+              ---------D  CD0  0  NONE     CD-ROM
+            * ----aAh---  HD1  1  FAT32    Primary 1
+              p-k----Hl-  HD1  5  FAT32    Logical 5
+              -S---A----  HD1  1  Linux    Primary 1
+              ---X-A----  HD1  2  FAT32    Primary 2
+
+
+
+
+  The first record in above sample is a floppy drive (A:). The second
+  and third records are the two hard disks (the MBRs). The next is a IDE
+  CD-ROM.  The next record is the first primary partition in the first
+  hard disk, and so on.
+
+  The meaning of each column in Boot Menu is:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   Flags   : Attribute flags of each boot record,
+             the meaning of each flag is:
+
+             * : indicates that it's the default boot record.
+                 When the auto boot delay time is up, or the
+                 ESC key is pressed, this boot record will be
+                 automatically booted.
+
+             p : indicates that it has password protection.
+                 Press F9 to change the password of the boot
+                 record. This password is noneffective unless
+                 the root password is set. Press F10 to set the
+                 root password. (The root password here has
+                 nothing to do with the root password in Linux!)
+
+             S : indicates that this boot record was added to
+                 the schedule table, if the current time falls
+                 into this record's schedule, SmartBtmgr will
+                 set it as default boot record. Press Ctrl-S to
+                 set/unset the schedule of current record.
+
+             k : indicates that this boot record has some
+                 keystrokes to be preloaded into the keyboard
+                 buffer before booting it. Press Ctrl-K to
+                 set/unset it.
+
+             X : indicates that the swap drive id flag is set.
+                 While booting this record, its drive will
+                 be swapped with the bootable drive of the same
+                 type. For example, if this flag is set for a
+                 partition in the second hard disk (drv id=129),
+                 the drive with id 128 (0x80) and 129 (0x81) will
+                 be swapped while booting this partition.
+                 This feature is very useful if you want to boot
+                 DOS/Windows 9X/NT from the second or later hard disk.
+                 Press Ctrl+X to toggle this flag.
+
+             a : indicates that this boot record will be
+                 automatically marked as active when booting it.
+                 Usually, the primary partition that installed
+                 DOS/Windows 9x/Windows NT should set this flag.
+                 Press F6 to toggle this flag.
+
+             A : indicates that this primary partition  was
+                 marked as active. Press F4 to mark it.
+
+             h : indicates that this boot record will be
+                 automatically hidden when booting other records.
+                 This flag only affects the FAT and NTFS partitions.
+                 Press F7 to toggle this flag.
+
+             H : indicates that this partition was already hidden.
+                 Press F5 to hide/unhide a partition.
+
+             l : indicates that this boot record is a logical
+                 partition.
+
+             D : indicates that this boot record is a disk drive,
+                 it can be a floppy drive or hard disk (MBR) in the
+                 current version.
+
+   Number  : The Drive No. and Partition No. of this boot record.
+             The left column is Drive No., the right one is
+             Partition No. For a floppy drive, the Drive No.
+             is FD0 or FD1 (A: or B:), the Partition No. is always 0.
+             For partitions, the Drive No. of the first hard disk
+             is HD0, the Partition No. is same as the Linux convention.
+             The CD-ROM Drive Number starts from CD0.
+
+   Type    : The partition type. For a disk drive, it's always NONE.
+
+   Name    : The name of the boot record. Press F3 to change it.
+
+
+
+
+
+  The global flags and information of Smart Boot Manager are displayed
+  at the right bottom corner of the screen, it looks like:
+
+
+
+        |HD0|PSALE| 28: 30
+
+
+
+
+  The first area (HD0) is the BIOS ID of the current boot drive, the
+  second area (PSALE) are the global flags, which mean:
+
+
+
+       P  :  Administrator password is available.
+       S  :  Smart Boot Manager is in Security Lock Mode.
+       A  :  Smart Boot Manager is in Administration mode.
+       L  :  "Remember the last boot record" feature is turned on.
+       E  :  Extended Int 13H is turned on.
+
+
+
+
+  The third area (28: 30) is the delay time counter.
+
+
+  4.3.  The hot keys
+
+  SmartBtmgr has following hot keys:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+         F1    Show Help window
+    Ctrl+F1    Show About window
+         F2    Save changes
+         F3    Rename the boot record
+         F4    Mark the primary partition active
+         F5    Hide/unhide the partition
+         F6    Toggle auto active (only for primary partitions)
+         F7    Toggle auto hide (only for partitions)
+         F8    Set default boot record
+   Shift+F8    Unset default boot record
+         F9    Change boot record password
+        F10    Change root password
+   Ctrl+F10    Enter/leave the administrator mode
+    Alt+F10    Enter/leave the Security Lock mode
+
+     Ctrl+D    Delete the boot record
+     Ctrl+T    Set delay time (seconds)
+     Ctrl+I    Rescan all boot records
+     Ctrl+H    Rescan all partitions
+
+     Ctrl+P    Duplicate the boot record
+     Ctrl+U    Move the boot record up
+     Ctrl+N    Move the boot record down
+
+     Ctrl+S    Set / unset the record's boot schedule
+     Ctrl+K    Set / unset the preload keystrokes
+
+     Ctrl+X    Toggle swap drive id flag
+
+     Ctrl+F    Change the style of Boot Menu
+
+     Ctrl+L    Toggle "Remember the last booted record"
+               (If this feature is turned on, there will
+                be a Red 'L' at right bottom of the screen.)
+
+     Ctrl+Q    Exit to BIOS
+
+    Up,Down    Move the focus bar
+     / or ?    Show information box
+      Enter    Boot it
+
+   Keypad +    Change Video mode, available video modes are
+               80x25 and 90x25.
+
+       Home
+     Delete    Move the Boot Menu Window.
+        End
+   PageDown
+
+   Ctrl+F12    Power Off.
+
+   Tab(Alt)    Open / Close the command menu.
+      Alt-S    Open / Close the System Settings Menu.
+      Alt-R    Open / Close the Record Settings Menu.
+
+
+
+
+
+  When the command menu is opened, following hot keys can be used:
+
+
+
+
+
+
+    Up,Down    Move the command menu's focus bar.
+      Enter    Execute the focused command.
+
+    Ctrl+Up    Move the boot menu's focus bar.
+  Ctrl+Down
+
+       Home
+     Delete    Move the command menu.
+        End
+   PageDown
+
+  Ctrl+Home
+   Ctrl+Del    Move the Boot Menu Window.
+   Ctrl+End
+  Ctrl+PgDn
+
+
+
+
+
+  4.4.  Command menus
+
+  Use Tab key to open or close the command menu, there are three command
+  menus available: Main Menu, Record Settings Menu and System Settings
+  Menu.
+
+
+  4.4.1.  Main Menu
+
+
+
+       Help                Open the Help window
+       About               Open the About window
+       Save Changes        Save the changes
+       Boot it             Boot the focused boot record
+       Boot Previous MBR   Boot the original MBR (before Smart Btmgr was installed)
+
+       Record Settings     Open the Record Settings Menu
+       System Settings     Open the System Settings Menu
+
+       Quit                Quit to BIOS (Try to boot the next bootable device)
+       Power Off           Turn the computer off (Needs Mother Board with APM)
+
+
+
+
+
+  4.4.2.  Record Settings Menu
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  Information           Show the boot record's information
+  Name                  Change the boot record's name
+  Password              Change the boot record's password
+  Schedule              Set/unset the Schedule time
+  Keystrokes            Set/unset the Keystrokes
+
+  Mark Active           Mark the boot record as active
+  Hide/unhide           Hide/unhide the boot record
+  Auto Active           Set/unset the Auto Active flag
+  Auto Hide             Set/unset the Auto Hide flag
+  Swap Drive ID         Set/unset the Swap Drive ID flag
+
+  Delete                Delete the boot record
+  Duplicate             Duplicate the boot record
+  Move Up               move the boot record up
+  Move Down             move the boot record down
+
+
+
+
+
+  4.4.3.  System Settings Menu
+
+
+
+       Root Password                Set the Root(Administrator) Password
+       Toggle Admin Mode            Enter/Leave the administration mode
+       Toggle Security Mode         Enter/Leave the security mode
+
+       Set Default Record           Set focused boot record as the default record
+       Unset Default Record         Unset default boot record
+       Set Delay Time               Set the delay time
+       Change Boot Menu Style       Change the style of Boot Menu
+                                    (Hide Flags, Number, Type from Boot Menu).
+
+       Toggle Remember Last         Toggle "Remember the last boot record". There is a
+                                    Red 'L' at the bottom of the screen to indicate
+                                    this switch.
+
+       Toggle Extended Int13H       Turn on/off BIOS Extended Int13H.
+
+       Rescan All Boot Records      Rescan all boot records and rebuild the boot menu
+       Rescan All Partitions        Rescan all partitions and rebuild the boot menu
+       Set CD-ROM I/O Ports         Set the I/O ports of IDE CD-ROM by hand.
+       Set year (fix Y2K BIOS bug)  Set the correct year for old buggy BIOS.
+
+       Install Smart BootManager    Install Smart BootManager onto a selected drive
+       Uninstall Smart BootManager  Uninstall current Smart BootManager
+
+
+
+
+
+  4.5.  Advanced usage
+
+  4.5.1.  Password protection
+
+  The password scheme of SmartBtmgr is very flexible. One root password
+  can be set for administrator. Different access passwords can be
+  assigned to each boot record to restrict access to this record.
+
+  If the root password was set, there will be a 'P' character displayed
+  at the right bottom of the screen.
+
+  There are three security modes available:
+
+  o  Normal mode
+
+
+     In this mode, following operations need the Boot Record Password:
+
+  o  Change Name
+
+  o  Change the Boot Record Password
+
+  o  Toggle the Auto Active flag
+
+  o  Toggle the Auto Hide flag
+
+  o  Toggle the Swap drive ID flag
+
+  o  Active the Boot Record
+
+  o  Hide / unhide the Boot Record
+
+  o  Boot the Record
+
+     All other operations except "Save Changes" need the Root Password.
+
+
+  o  Security Lock mode
+
+
+     In this mode, all operations except "Boot the Record" need the Root
+     Password. The Boot Record Password is needed to boot the record.
+     This mode is the most secure mode, you should switch SmartBtmgr
+     into this mode after you finish configuring it.  When SmartBtmgr is
+     in this mode, there will be a 'S' char displayed at the right
+     bottom of the screen.
+
+     Use Alt-F10 key to Enter or Leave this mode.
+
+
+  o  Administrator mode
+
+
+     In this mode, all operations do not need any password! This mode is
+     only used to configure SmartBtmgr!  When SmartBtmgr is in this
+     mode, there will be a 'A' char displayed at the right bottom of the
+     screen.
+
+     Use Ctrl-F10 key to Enter or Leave this mode.
+
+
+  4.5.2.  Delay time
+
+  If no key is pressed within the delay time, the default boot record
+  will be booted automatically.
+
+  If the delay time is set to zero, the user interface will not be
+  displayed and the default boot record will be booted automatically.
+  Hold the Ctrl key while rebooting the computer to enter the user
+  interface of SmartBtmgr again.
+
+  If the delay time is set to 255, there is no time limit to boot the
+  default boot record.
+
+
+  4.5.3.  Boot Schedule
+
+  A boot record can be assigned a scheduled time/days range.  When
+  booting the computer each time, if the current time falls within the
+  scheduled time range of a boot record, Smart Btmgr will set this boot
+  record as the default record.
+
+  If the delay time was set to zero, this boot record will be booted
+  automatically.
+
+  Use Ctrl-S key to set or unset a boot record's scheduled time range.
+
+  The minimal unit of a scheduled time range is a minute, and the format
+  must be:
+
+
+
+           hh:mm-hh:mm;days
+
+
+
+
+  The first hh:mm is the beginning time, the second hh:mm is the ending
+  time. It uses 24 hour format. The days field is a set of number
+  rangeing from 0 to 6, each number indicates a day (0-6, indicate
+  Sunday-Saturday).  If the days field is missing, all of the days will
+  be selected.  For example, if a boot record will be used between 8:00
+  am to 2:30 pm every Monday to Friday, the time range must be entered
+  as:
+
+
+
+           08:00-14:30;12345
+
+
+
+
+
+  4.5.4.  Preload Keystrokes
+
+  Smart Btmgr can store some keystrokes into keyboard buffer before
+  booting an OS. This feature may be used to control the boot
+  configuration of the OS. For example, storing the Alt-F5 key
+  combination into the keyboard buffer before booting Windows 9x, will
+  have it go into command prompt mode directly.
+
+  Using this feature together with the Ctrl-P (Duplicate Boot Record)
+  hot key , you can create multiple boot records for an OS, each boot
+  record boots the OS into a special environment.
+
+  For example, you can create three boot records for your Windows 9x
+  System, one is the normal boot record, another one is a safe mode boot
+  record and the last one is the command prompt mode.
+
+  Use Ctrl-K key to set or disable this feature of a boot record.
+
+  While setting the keystrokes of a boot record, there will be an
+  information box at the center of the screen, which indicates the key
+  code of the last pressed key and how many keys been pressed. Smart
+  Btmgr can only store a maximum of 13 keys for each boot record. Press
+  <Scroll Lock> keys to finish the input.
+
+  Note: By default LILO will discard all keys in keyboard buffer when it
+  starts. So this feature might not work on your LILO. You should
+  recompile LILO to enable this feature:
+
+  * First edit the Makefile, add "-DNODRAIN" at the end of the line
+  "CONFIG = ...":
+
+
+         CONFIG = .... -DNODRAIN
+
+
+
+
+  * Second recompile and install LILO:
+
+
+
+         $ make; make install
+         $ lilo
+
+
+
+
+  You must be root to do this!
+
+
+  4.5.5.  Swap drive ID
+
+  If you want to boot DOS, Windows 9x/NT/2000 or some other OS from the
+  second or later hard disk, you will find that this feature is very
+  useful.
+
+  If you turn on this flag for a partition on the second or later hard
+  disk, this drive will be swapped with the bootable drive (ID = 0x80)
+  while booting this partition. Then the OS will run as if it is on the
+  first hard disk.
+
+
+  4.5.6.  Online installation and uninstallation
+
+  If you want to install Smart Boot Manager from the user interface,
+  first select a disk drive's boot record, then use the command "Install
+  Smart BootManager" (in System Settings Menu). A dialog will appear to
+  let you confirm, press Y to continue the installation.
+
+  You can only install Smart BootManager onto a disk drive, installation
+  into a partition is not allowed.
+
+
+  If you want to uninstall current Smart Boot Manager, just use command
+  "Uninstall Smart BootManager" (in System Settings Menu).  But, be
+  careful, this uninstallation command can only restore the MBR area,
+  any other hidden sectors occupied by Smart BootManager will not be
+  restored.
+
+
+  4.5.7.  Boot from CD-ROM
+
+  Smart BootManager supports booting from almost all kinds of IDE ATAPI
+  CD-ROM, including PCMCIA CD-ROM. But some special IDE controllers may
+  have different I/O ports, which prevent Smart BootManager from finding
+  the CD-ROM.  In this case, you can set the I/O ports by hand. Run the
+  command "Set CD-ROM I/O Ports" (in System Settings Menu). An input box
+  will appear to let you input the I/O ports. Each IDE controller has
+  two I/O ports, e.g. 0x1F0,0x3F6 (the master IDE controller). Input
+  those I/O ports exactly in the following format:
+
+
+
+        1F0,3F6                  (Uppercase hex numbers with a comma in the middle)
+
+
+
+
+  After entering the I/O ports, you must use the command "Rescan All
+  Drives" (Ctrl-I) to find the CD-ROM.
+
+  When you boot a CD disc with multiple boot images, there will be a
+  menu to let you choose an image to boot.
+
+
+
+  4.5.8.  How to install DOS, Windows 9x into a logical FAT partition?
+
+  SmartBtmgr allows you to boot DOS/Windows 9X from a logical FAT
+  partition. But the setup program of DOS/Windows 9X is too poor to
+  install it into a logical FAT partition.
+
+  I have no any idea of how you install DOS/Windows 9X into a logical
+  FAT partition directly, but you can transfer a working copy of
+  DOS/Windows 9X from a primary FAT partition to a logical one, by using
+  some other utility such as Norton Ghost.
+
+  In order to boot a DOS/Windows 9X that is installed in a logical FAT
+  partition, you must hide all FAT partitions before it.
+
+  You can toggle on the Auto Hide switch of each FAT partition, if you
+  tired of hiding partitions every time.
+
+  If this partition is on the second or later hard disk, the Swap drive
+  ID flag might be turned on as well.
+
+
+  4.5.9.  How to install DOS, Windows 9x/NT/2000 into the second (or
+  later) HD?
+
+  One of common methods of installing DOS/Windows 9x into the second (or
+  later) HD is to unplug all other HDs that are before this hard disk
+  OSes, plug all the HDs back in, then you can use Smart BootManager to
+  boot the OSes on the second or later HD by turning on the Swap drive
+  ID flag of the partition.
+
+
+  5.  Compatibility
+
+  5.1.  Hardware compatibility
+
+  Smart BootManager supports the Intel i386 platform only.  Extended Int
+  13h (LBA standard) for Large disk (over 8G) is supported.  Old CHS
+  standard is supported as well.
+
+
+  5.2.  Known bugs of Smart Boot Manager 3.0
+
+  There are following known bugs available in current version:
+
+  o  I found that there are some kind of mother boards that have buggy
+     BIOS's, which can cause Smart Boot Manager to fail to find all of
+     the drives and partitions.
+
+
+  5.3.  Compatible OSes
+
+  The following OSes are tested to be able to boot via Smart
+  BootManager:
+
+
+  o  GNU/Linux x86
+
+
+  o  FreeBSD
+
+  o  BeOS
+
+  o  OS/2
+
+  o  QNX
+
+  o  Solaris x86 (only Solaris 8 was tested)
+
+  o  Novell Netware
+
+  o  Microsoft DOS, Windows 9x, Windows NT and Windows 2000
+
+  Other Operating Systems should be supported as well, but I have not
+  had a chance to test them. If you can test them, please let me know
+  the results.
+
+
+  6.  TODO list
+
+  The following features are sorted by priority:
+
+  I. Features should be added to this major version:
+
+
+  o  More Documentation.  Because of my poor English, the documents are
+     far from complete.  I wish someone could help me write some
+     documentation.
+
+  o  Flexible and smart installation programs for multiple OSes, such as
+     Windows 9X, Linux, FreeBSD and DOS.
+
+  o  Makefiles and/or automake/autoconf scripts for multiple OSes.  I
+     have not learned to write a Makefile. I hope someone could help me.
+
+  o  Utilities for multiple OSes that realize the "Direct Boot" feature
+     in SmartBtmgr.
+
+  o  Bug fixes and optimization.
+
+  o  More themes for different languages and looks.
+
+  II. Features for later versions:
+
+
+  o  Online installation and uninstallation. ( DONE )
+
+  o  More powerful weekly boot schedule. ( DONE )
+
+  o  Support for non-standard keyboards (azerty, dvorak etc.). ( DONE )
+
+  o  Easy-to-use Command Menu. ( DONE )
+
+  o  Swap drive ID. ( DONE )
+
+  o  Preload keystrokes (Send keystrokes to OS). ( DONE )
+
+  o  Boot Schedule (Auto boot different OS at different time). ( DONE )
+
+  o  Support Booting from CD-ROM. ( DONE )
+
+  o  Use compression technology to reduce program size. ( DONE )
+
+  o  Filesystem driver (ext2, FAT, etc.).
+
+  o  Linux kernel loader.
+
+  o  Build-in fdisk utility.
+
+  If you have any new ideas and suggestions please let me know, or help
+  me implementing them.
+
+
+  7.  Contacting the author
+
+  If you have any great ideas or suggestions, don't hesitate to tell me!
+  If you made some improvement for this program or some wonderful
+  themes, send them along, and I will add them to the next release
+  version.
+
+  My address is: su_zhe@sina.com <mailto:su_zhe@sina.com> Alternative :
+  suzhe@gnuchina.org <mailto:suzhe@gnuchina.org>
+
+
+  See section ``'' for other authors' address.
+
+
+  8.  Thanks
+
+  I would like to thank everyone that helped and supported me to develop
+  this program. Special thanks to:
+
+
+  Chris Li (chrisl@gnuchina.org <mailto:chrisl@gnuchina.org>)
+
+  Linuxrat (linuxrat@263.net <mailto:linuxrat@263.net>)
+
+  Frdric Bonnaud (tux.le.pengouin@free.fr
+  <mailto:tux.le.pengouin@free.fr>)
+
+  Zak Meekins (zmeekins@email.sjsu.edu <mailto:zmeekins@email.sjsu.edu>)
+
+  Gnagno (gnagno@tiscalinet.it <mailto:gnagno@tiscalinet.it>)
+
+  Patrick van Brakel (patrickb@wfw.wtb.tue.nl
+  <mailto:patrickb@wfw.wtb.tue.nl>)
+
+  njh (njh@hawthorn.csse.monash.edu.au
+  <mailto:njh@hawthorn.csse.monash.edu.au>)
+
+  Lukas Kumpera (xkumpera@poli.feld.cvut.cz
+  <mailto:xkumpera@poli.feld.cvut.cz>)
+
+  Risko Gergely (risko@njszki.hu <mailto:risko@njszki.hu>)
+
+  Bill Hults (ehults@itofvt.net <mailto:ehults@itofvt.net>)
+
+  Sam Varghese (sam@gnubies.com <mailto:sam@gnubies.com>)
+
+  Udo Jocher (udo@udoj.org <mailto:udo@udoj.org>)
+
+  Benoit Mortier (opensides@caramail.com
+  <mailto:opensides@caramail.com>)
+
+  and all other fellows in TurboLinux and Linux Board of SMTH BBS of
+  Tsinghua University.
+
+
+
+
+
+  9.  Authors
+
+  * Kernel programs and some utilities:
+
+  Suzhe (email: suzhe@gnuchina.org <mailto:suzhe@gnuchina.org>)
+
+  * Installation program and Makefile:
+
+  Lonius (email: november@video.mdc.tsinghua.edu.cn
+  <mailto:november@video.mdc.tsinghua.edu.cn>)
+
+  * French theme:
+
+  Benoit Mortier. (benoit.mortier@hitention.com
+  <mailto:benoit.mortier@hitention.com>)
+
+  Frdric Bonnaud (tux.le.pengouin@free.fr
+  <mailto:tux.le.pengouin@free.fr>)
+
+  * German theme:
+
+  Dirk Knop (dknop@gwdg.de <mailto:dknop@gwdg.de>)
+
+  * Hungarian theme:
+
+  Lenart Janos (lenart@njszki.hu <mailto:lenart@njszki.hu>)
+
+  * Russian theme:
+
+  Victor O`Muerte (vomuerte@mail.ru <mailto:vomuerte@mail.ru>)
+
+  * Czech theme
+
+  brz (brz@post.cz <mailto:brz@post.cz>)
+
+  * Spanish theme
+
+  Manuel Clos (llanero@jazzfree.com <mailto:llanero@jazzfree.com>)
+
+  * Portuguese theme
+
+  Andre Maldonado (agm@clix.pt <mailto:agm@clix.pt>)
+
+  * Smart Boot Manager UNIX Configurator:
+
+  Risko Gergely (risko@njszki.hu <mailto:risko@njszki.hu>)
+
+  * ATAPI Drive and debug/helptool for NASM: Christopher Li
+  (chrisl@gnuchina.org <mailto:chrisl@gnuchina.org>)
+
+  * Y2k workaround patch Santiago Garcia Mantinan (manty@i.am
+  <mailto:manty@i.am>)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
