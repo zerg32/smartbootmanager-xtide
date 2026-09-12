@@ -1140,6 +1140,11 @@ turnoff_scrolllock:
 ;lock_screen ---- lock the screen, any output will be stored in SCR_BAK_SEG
 ;=============================================================================
 lock_screen:
+%ifdef XTIDE_PRELOAD
+	mov word [screen_bufseg], SCR_BUF_SEG0
+	mov byte [screen_page], 0
+	ret
+%else
         mov al, [screen_page]
         xor al, 0x02
         mov word [screen_bufseg], SCR_BUF_SEG0
@@ -1149,15 +1154,20 @@ lock_screen:
 .set_seg0:
         mov [screen_page], al
         ret
+%endif
 
 ;=============================================================================
 ;unlock_screen ---- unlock the screen, copy SCR_BAK_SEG to SCR_BUF_SEG
 ;=============================================================================
 unlock_screen:
+%ifdef XTIDE_PRELOAD
+	ret
+%else
         mov ah, 0x05
         mov al, [screen_page]
         int 0x10
         ret
+%endif
 
 %endif
 

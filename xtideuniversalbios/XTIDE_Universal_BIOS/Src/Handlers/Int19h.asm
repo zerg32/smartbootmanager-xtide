@@ -28,6 +28,34 @@ SECTION .text
 ;		Never returns (loads operating system)
 ;--------------------------------------------------------------------
 Int19h_BootLoaderHandler:
+%ifdef XTIDE_SBM_RETURN
+	; SBM calls INT 19h solely to trigger XT-IDE's normal initialization path.
+	; Use XT-IDE's dedicated stack, then restore the INT frame before returning.
+	sti
+	cld
+	LOAD_BDA_SEGMENT_TO	es, ax
+	STORE_POST_STACK_POINTER
+	SWITCH_TO_BOOT_MENU_STACK
+	call	Initialize_AndDetectDrives
+%ifdef MODULE_HOTKEYS
+	; The normal boot path removes this temporary hotkey timer hook before
+	; handing control to a boot sector. SBM continues running after this
+	; return, so restore the system timer handler here as well.
+	push	ds
+	push	es
+	pop		ds
+	cli
+	mov		ax, [BOOTVARS.hotkeyVars+HOTKEYVARS.fpPrevTimerHandler]
+	mov		[BIOS_SYSTEM_TIMER_TICK_INTERRUPT_08h*4], ax
+	mov		ax, [BOOTVARS.hotkeyVars+HOTKEYVARS.fpPrevTimerHandler+2]
+	mov		[BIOS_SYSTEM_TIMER_TICK_INTERRUPT_08h*4+2], ax
+	sti
+	pop		ds
+%endif
+	mov		ax, es
+	SWITCH_BACK_TO_POST_STACK
+	iret
+%else
 	sti											; Enable interrupts
 %ifdef CLD_NEEDED
 	cld											; String instructions to increment pointers
@@ -43,6 +71,7 @@ Int19h_BootLoaderHandler:
 	LOAD_BDA_SEGMENT_TO	es, ax					; Load BDA segment (zero) to ES
 %endif
 	; Fall to .PrepareBootLoaderStack
+%endif
 
 
 ;--------------------------------------------------------------------

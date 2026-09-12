@@ -1,0 +1,20 @@
+# Generated output and machine-specific captures
+/build/
+/*.img
+/*.iso
+/*.rom
+/*.bin
+/*.zip
+/*.7z
+/*.tgz
+/*.tar.gz
+/*.ppm
+/*.png
+/*.log
+
+# Licensed operating-system media and installations
+/DOS622-Disk*.img
+
+# Local editor and operating-system metadata
+.DS_Store
+*~

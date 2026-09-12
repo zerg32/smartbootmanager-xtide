@@ -159,23 +159,16 @@ color:
 
 ; icon data
 icon:
-.brand_size         dw  0x0104              ; the size of brand icon,
-                                            ; high byte = row, low byte = col.
-.brand              dw  icon_data.brand     ; offset of brand icon data, set to
-                                            ; zero if no brand icon.
+.brand_size         dw  0                   ; no brand icon.
+.brand              dw  0                   ; no brand icon.
 
-.background_size    dw  0x0104              ; the size of background icon,
-                                            ; high byte = row, low byte = col.
-.background         dw  icon_data.background; offset of background icon data,
-                                            ; set to zero if no background icon.
+.background_size    dw  0                   ; no background icon.
+.background         dw  0                   ; no background icon.
 
 ; font data
 font:
-.number             dw  (font_data.end-font_data)/17
-                                            ; number of chars to be replaced,
-                                            ; should <= (256 - start).
-.data               dw  font_data           ; offset of font set data, set to
-                                            ; zero if no font to be replaced.
+.number             dw  0                   ; no font replacement.
+.data               dw  0                   ; no font replacement.
 
 
 ; chars used by window frame
@@ -570,4 +563,3 @@ string:
 
 ; END OF THEME.
 end_of_theme:
-

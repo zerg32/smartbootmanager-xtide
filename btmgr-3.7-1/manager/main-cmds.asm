@@ -379,21 +379,6 @@ unset_default_record:
 ;toggle_auto_active ---- toggle the auto active switch
 ;=============================================================================
 toggle_auto_active:
-        cmp byte [good_record_number], 0
-        je .end
-
-        call get_record_pointer
-        call check_allow_act
-        jc .end
-
-        push si
-        call confirm_security_passwd
-        pop si
-        jc .end
-        
-        xor word [si + struc_bootrecord.flags], INFOFLAG_AUTOACTIVE
-        inc byte [change_occured]               ; some changes occured.
-        
 .end:
         ret
 
@@ -1245,6 +1230,9 @@ read_keystroke:
 ;show_record_info ---- show the information of the boot record
 ;=============================================================================
 show_record_info:
+        push es
+        push ds
+        pop es
         cmp byte [good_record_number], 0
         jmpe .end
 
@@ -1370,6 +1358,7 @@ show_record_info:
         lea si, [tmp_buffer]
         call info_box
 .end:
+        pop es
         ret
 
 ; si -> flag string

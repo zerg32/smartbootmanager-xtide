@@ -13,37 +13,6 @@
 ;init_theme ---- initialize the theme data.
 ;=============================================================================
 init_theme:
-        mov bx, [icon.brand]
-        or bx, bx
-        jz .adjust_bkgnd                            ; no brand icon
-        add word [icon.brand], theme_start          ;
-.adjust_bkgnd:
-        mov bx, [icon.background]
-        or bx, bx
-        jz .adjust_font                             ; no background icon
-        add word [icon.background], theme_start
-.adjust_font:
-        mov bx, [font.data]
-        or bx, bx
-        jz .adjust_keymap
-        add word [font.data], theme_start
-.adjust_keymap:
-        mov bx, [keymap.data]
-        or bx, bx
-        jz .adjust_str
-        add word [keymap.data], theme_start
-
-.adjust_str:
-        lea si, [str_idx]
-        mov cx, (end_of_str_idx - str_idx)/2
-        
-.loop_adjust:
-        mov bx, [si]
-        add bx, theme_start
-        mov [si], bx
-        add si, 2
-        loop .loop_adjust
-
         mov al, 0x10
         and [keyboard_type], al
 
@@ -1811,6 +1780,9 @@ calc_checksum:
 ;       cf =1 cancel
 ;==============================================================================
 choose_cdimg:
+	push es
+	push ds
+	pop es
 	pusha
 
 	cmp cl, 8
@@ -1903,6 +1875,7 @@ choose_cdimg:
 	stc
 .ok:
 	popa
+	pop es
 	mov ax, [cdimg_choice_result]
 	ret
 	

@@ -16,7 +16,7 @@ THEMES=		themes/theme-de.asm themes/theme-us.asm themes/theme-zh.asm \
 		themes/theme-es.asm themes/theme-fr.asm themes/theme-pt.asm
 
 LOADER_DEPS=	loader.asm $(INCLUDES)
-MAIN_DEPS=	main.asm main-cmds.asm main-utils.asm hd_io.asm ui.asm \
+MAIN_DEPS=	main.asm main-cmds.asm main-utils.asm hd_io.asm ui.asm xtide_preload.asm \
 		knl.asm utils.asm myint13h.asm edd30.asm tempdata.asm \
 		edd30.bin $(INCLUDES) $(THEMES)
 

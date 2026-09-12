@@ -170,6 +170,33 @@ start:
 %endif
 
 ;=============================================================================
+%ifdef XTIDE_PRELOAD
+	jmp real_start
+
+xtide_preload_failed:
+	mov si, xtide_preload_failed_text
+.print_error:
+	lodsb
+	or al, al
+	jz .halt
+	mov ah, 0Eh
+	mov bx, 0007h
+	int 10h
+	jmp short .print_error
+.halt:
+	mov al, [xtide_failure_code]
+	mov ah, 0Eh
+	mov bx, 0007h
+	int 10h
+	cli
+	hlt
+	jmp short .halt
+
+xtide_preload_failed_text db "XTIDE preload failed: ", 0
+%include "xtide_preload.asm"
+%endif
+
+;=============================================================================
 ; Compressed area starts here.
 ;=============================================================================
 real_start:
@@ -182,6 +209,13 @@ real_start:
 	mov cx, end_of_tmp_data - start_of_tmp_data
 	xor al, al                              ; clear the temp data area.
 	rep stosb                               ;
+
+; Install XT-IDE before SBM probes disks. The image is kept in a raw,
+; low-LBA reservation so an old BIOS can read it before XT-IDE is active.
+%ifdef XTIDE_PRELOAD
+	call preload_xtide
+	jc xtide_preload_failed
+%endif
 
 	mov bl, 1
 	call install_myint13h
@@ -387,7 +421,11 @@ do_nothing:
 %include "utils.asm"
 %include "knl.asm"
 %include "hd_io.asm"
+%ifdef XTIDE_PRELOAD
+%include "myint13h_stub.asm"
+%else
 %include "myint13h.asm"
+%endif
 
 ;=============================================================================
 ; data area

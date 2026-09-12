@@ -231,7 +231,6 @@ disk_access:
         jb .retry_ext_read
         jmp short .access_error
 
-        
 .no_ext:
         push dx
         push es
