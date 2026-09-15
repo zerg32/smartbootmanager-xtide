@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -25,7 +25,8 @@
 ; OUTPUT_AL_TO_IDE_CONTROL_BLOCK_REGISTER
 ;	Parameters:
 ;		AL:		Byte to output
-;		%1:		IDE Register				(OUTPUT_AL_TO_IDE_REGISTER)
+;		%1:		DX, DL or
+;				IDE Register				(OUTPUT_AL_TO_IDE_REGISTER)
 ;				IDE Control Block Register	(OUTPUT_AL_TO_IDE_CONTROL_BLOCK_REGISTER)
 ;		DS:DI:	Ptr to DPT (in RAMVARS segment)
 ;	Returns:
@@ -36,16 +37,52 @@
 %macro OUTPUT_AL_TO_IDE_REGISTER 1
 %ifndef MODULE_8BIT_IDE	; Standard IDE controllers only
 
-	%ifnidni %1, dx
-		mov		dx, %1
+	%ifdef IO_SEQUENCE
+		%ifndef previous_parameter
+			%ifnidni %1, dx
+				%ifidni %1, dl
+					xor		dh, dh
+				%else
+					mov		dx, %1
+				%endif
+			%endif
+			add		dx, [di+DPT.wBasePort]
+		%elif previous_parameter + 1 = %1
+			inc		dx
+		%elif previous_parameter - 1 = %1
+			dec		dx
+		%elif previous_parameter = %1
+		%else
+			%ifnidni %1, dx
+				%ifidni %1, dl
+					xor		dh, dh
+				%else
+					mov		dx, %1
+				%endif
+			%endif
+			add		dx, [di+DPT.wBasePort]
+		%endif
+		%define previous_parameter %1
+
+	%else ; ~IO_SEQUENCE
+		%undef previous_parameter
+		%ifnidni %1, dx
+			%ifidni %1, dl
+				xor		dh, dh
+			%else
+				mov		dx, %1
+			%endif
+		%endif
+		add		dx, [di+DPT.wBasePort]
 	%endif
-	add		dx, [di+DPT.wBasePort]
 	out		dx, al
 
 %else	; Register translations required
 
-	%ifnidni %1, dl
-		mov		dl, %1
+	%ifnidni %1, dx
+		%ifnidni %1, dl
+			mov		dl, %1
+		%endif
 	%endif
 	call	IdeIO_OutputALtoIdeRegisterInDL
 
@@ -56,17 +93,55 @@
 %macro OUTPUT_AL_TO_IDE_CONTROL_BLOCK_REGISTER 1
 %ifndef MODULE_8BIT_IDE	; Standard IDE controllers only
 
-	eMOVZX	bx, [di+DPT.bIdevarsOffset]
-	%ifnidni %1, dx
-		mov		dx, %1
+	%ifdef IO_SEQUENCE
+		%ifndef previous_parameter
+			eMOVZX	bx, BYTE [di+DPT.bIdevarsOffset]
+			%ifnidni %1, dx
+				%ifidni %1, dl
+					xor		dh, dh
+				%else
+					mov		dx, %1
+				%endif
+			%endif
+			add		dx, [cs:bx+IDEVARS.wControlBlockPort]
+		%elif previous_parameter + 1 = %1
+			inc		dx
+		%elif previous_parameter - 1 = %1
+			dec		dx
+		%elif previous_parameter = %1
+		%else
+			eMOVZX	bx, BYTE [di+DPT.bIdevarsOffset]
+			%ifnidni %1, dx
+				%ifidni %1, dl
+					xor		dh, dh
+				%else
+					mov		dx, %1
+				%endif
+			%endif
+			add		dx, [cs:bx+IDEVARS.wControlBlockPort]
+		%endif
+		%define previous_parameter %1
+
+	%else ; ~IO_SEQUENCE
+		%undef previous_parameter
+		eMOVZX	bx, BYTE [di+DPT.bIdevarsOffset]
+		%ifnidni %1, dx
+			%ifidni %1, dl
+				xor		dh, dh
+			%else
+				mov		dx, %1
+			%endif
+		%endif
+		add		dx, [cs:bx+IDEVARS.wControlBlockPort]
 	%endif
-	add		dx, [cs:bx+IDEVARS.wControlBlockPort]
 	out		dx, al
 
 %else	; Register translations required
 
-	%ifnidni %1, dl
-		mov		dl, %1
+	%ifnidni %1, dx
+		%ifnidni %1, dl
+			mov		dl, %1
+		%endif
 	%endif
 	call	IdeIO_OutputALtoIdeControlBlockRegisterInDL
 
@@ -77,7 +152,7 @@
 ;--------------------------------------------------------------------
 ; INPUT_TO_AL_FROM_IDE_REGISTER
 ;	Parameters:
-;		%1:		IDE Register
+;		%1:		DX, DL or IDE Register
 ;		DS:DI:	Ptr to DPT (in RAMVARS segment)
 ;	Returns:
 ;		AL:		Inputted byte
@@ -88,15 +163,21 @@
 %ifndef MODULE_8BIT_IDE	; Standard IDE controllers only
 
 	%ifnidni %1, dx
-		mov		dx, %1
+		%ifidni %1, dl
+			xor		dh, dh
+		%else
+			mov		dx, %1
+		%endif
 	%endif
 	add		dx, [di+DPT.wBasePort]
 	in		al, dx
 
 %else	; Register translations required
 
-	%ifnidni %1, dl
-		mov		dl, %1
+	%ifnidni %1, dx
+		%ifnidni %1, dl
+			mov		dl, %1
+		%endif
 	%endif
 	call	IdeIO_InputToALfromIdeRegisterInDL
 
@@ -142,6 +223,26 @@
 	mov		ch, cl		; 2 bytes shorter but possibly slower
 	mov		cl, 3
 	shr		cx, cl
+%endif
+%endmacro
+
+%macro UNROLL_SECTORS_IN_CX_TO_16WORDS 0
+%ifdef USE_186
+	shl		cx, 4
+%else
+	mov		ch, cl
+	mov		cl, 4
+	shr		cx, cl
+%endif
+%endmacro
+
+%macro UNROLL_SECTORS_IN_CX_TO_32WORDS 0
+%ifdef USE_186
+	shl		cx, 3
+%else
+	shl		cx, 1
+	shl		cx, 1
+	shl		cx, 1
 %endif
 %endmacro
 

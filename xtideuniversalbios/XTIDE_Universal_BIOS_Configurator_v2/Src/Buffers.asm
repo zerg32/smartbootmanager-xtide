@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ Buffers_Clear:
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 Buffers_IsXtideUniversalBiosLoaded:
-	test	BYTE [cs:g_cfgVars+CFGVARS.wFlags], FLG_CFGVARS_FILELOADED | FLG_CFGVARS_ROMLOADED
+	test	BYTE [g_cfgVars+CFGVARS.wFlags], FLG_CFGVARS_FILELOADED | FLG_CFGVARS_ROMLOADED
 	jnz		SHORT .FileOrBiosLoaded
 	test	sp, sp		; Clear ZF
 	ret
@@ -119,12 +119,12 @@ Buffers_IsXTbuildLoaded:
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 Buffers_NewBiosWithSizeInDXCXandSourceInALhasBeenLoadedForConfiguration:
-	and		BYTE [cs:g_cfgVars+CFGVARS.wFlags], ~(FLG_CFGVARS_FILELOADED | FLG_CFGVARS_ROMLOADED | FLG_CFGVARS_UNSAVED)
-	or		[cs:g_cfgVars+CFGVARS.wFlags], al
+	and		BYTE [g_cfgVars+CFGVARS.wFlags], ~(FLG_CFGVARS_FILELOADED | FLG_CFGVARS_ROMLOADED | FLG_CFGVARS_UNSAVED)
+	or		[g_cfgVars+CFGVARS.wFlags], al
 	shr		dx, 1
 	rcr		cx, 1
 	adc		cx, BYTE 0		; Round up to next WORD
-	mov		[cs:g_cfgVars+CFGVARS.wImageSizeInWords], cx
+	mov		[g_cfgVars+CFGVARS.wImageSizeInWords], cx
 	ret
 
 
@@ -140,12 +140,12 @@ Buffers_NewBiosWithSizeInDXCXandSourceInALhasBeenLoadedForConfiguration:
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 Buffers_SetUnsavedChanges:
-	or		BYTE [cs:g_cfgVars+CFGVARS.wFlags], FLG_CFGVARS_UNSAVED
+	or		BYTE [g_cfgVars+CFGVARS.wFlags], FLG_CFGVARS_UNSAVED
 	ret
 
 ALIGN JUMP_ALIGN
 Buffers_ClearUnsavedChanges:
-	and		BYTE [cs:g_cfgVars+CFGVARS.wFlags], ~FLG_CFGVARS_UNSAVED
+	and		BYTE [g_cfgVars+CFGVARS.wFlags], ~FLG_CFGVARS_UNSAVED
 	ret
 
 
@@ -160,8 +160,7 @@ Buffers_ClearUnsavedChanges:
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 Buffers_SaveChangesIfFileLoaded:
-	mov		al, [cs:g_cfgVars+CFGVARS.wFlags]
-	and		al, FLG_CFGVARS_FILELOADED | FLG_CFGVARS_UNSAVED
+	test	BYTE [g_cfgVars+CFGVARS.wFlags], FLG_CFGVARS_FILELOADED | FLG_CFGVARS_UNSAVED
 	jz		SHORT .NothingToSave
 	jpo		SHORT .NothingToSave
 	mov		bx, g_szDlgSaveChanges
@@ -172,6 +171,27 @@ ALIGN JUMP_ALIGN
 .NothingToSave:
 	ret
 
+;--------------------------------------------------------------------
+; Buffers_GetSelectedEepromSizeInWordsToAX
+;	Parameters:
+;		Nothing
+;	Returns:
+;		AX:		Selected EEPROM size in WORDs
+;	Corrupts registers:
+;		BX
+;--------------------------------------------------------------------
+ALIGN JUMP_ALIGN
+Buffers_GetSelectedEepromSizeInWordsToAX:
+	eMOVZX	bx, BYTE [g_cfgVars+CFGVARS.bEepromType]
+	mov		ax, [bx+g_rgwEepromTypeToSizeInWords]
+
+	cmp		bl, EEPROM_TYPE.SST_39SF
+	jne		SHORT .HaveEepromSize
+	cmp		ax, [g_cfgVars+CFGVARS.wImageSizeInWords]
+	jae		SHORT .HaveEepromSize
+	eSHL_IM	ax, 1			; Auto-double SST size when too small.
+.HaveEepromSize:
+	ret
 
 ;--------------------------------------------------------------------
 ; Buffers_AppendZeroesIfNeeded
@@ -180,29 +200,27 @@ ALIGN JUMP_ALIGN
 ;	Returns:
 ;		Nothing
 ;	Corrupts registers:
-;		AX, CX, DI
+;		AX, BX, CX, DI
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 Buffers_AppendZeroesIfNeeded:
-	push	es
-
-	eMOVZX	di, [cs:g_cfgVars+CFGVARS.bEepromType]
-	mov		cx, [cs:di+g_rgwEepromTypeToSizeInWords]
-	sub		cx, [cs:g_cfgVars+CFGVARS.wImageSizeInWords]	; CX = WORDs to append
+	call	Buffers_GetSelectedEepromSizeInWordsToAX
+	mov		cx, [g_cfgVars+CFGVARS.wImageSizeInWords]
+	sub		ax, cx			; AX = WORDs to append
 	jbe		SHORT .NoNeedToAppendZeroes
 
+	eSHL_IM	cx, 1
+	push	es
 	call	Buffers_GetFileBufferToESDI
-	mov		ax, [cs:g_cfgVars+CFGVARS.wImageSizeInWords]
-	eSHL_IM	ax, 1
-	add		di, ax			; ES:DI now point first unused image byte
-	xor		ax, ax
+	add		di, cx			; ES:DI now point first unused image byte
+	xor		cx, cx
+	xchg	cx, ax
 %ifdef CLD_NEEDED
 	cld
 %endif
 	rep stosw
-ALIGN JUMP_ALIGN
-.NoNeedToAppendZeroes:
 	pop		es
+.NoNeedToAppendZeroes:
 	ret
 
 

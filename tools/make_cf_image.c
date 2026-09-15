@@ -62,8 +62,17 @@ static void write_at(int fd, uint64_t offset, const void *data, size_t size) {
         fail("writing image");
 }
 
-static uint32_t sector_count(size_t bytes) {
-    return (uint32_t)((bytes + SECTOR_SIZE - 1) / SECTOR_SIZE);
+static int xtide_is_valid(const uint8_t *xtide, size_t size) {
+    uint8_t checksum = 0;
+    size_t index;
+
+    if (size < 3 || xtide[0] != 0x55 || xtide[1] != 0xaa ||
+        xtide[2] == 0 || xtide[2] > XTIDE_MAX_SECTORS ||
+        size != (size_t)xtide[2] * SECTOR_SIZE)
+        return 0;
+    for (index = 0; index < size; ++index)
+        checksum = (uint8_t)(checksum + xtide[index]);
+    return checksum == 0;
 }
 
 static void set_le32(uint8_t *ptr, uint32_t value) {
@@ -136,8 +145,9 @@ int main(int argc, char **argv) {
     size_t mbr_code_size;
     uint8_t mbr[SECTOR_SIZE] = {0};
     uint8_t boot_shim[SECTOR_SIZE];
+    uint8_t xtide_region[XTIDE_MAX_SECTORS * SECTOR_SIZE] = {0};
     size_t loader_size, main_size, xtide_size, loader_magic;
-    uint32_t main_sectors, xtide_sectors;
+    uint32_t main_sectors;
     int fd;
 
     if (argc != 6) {
@@ -148,17 +158,13 @@ int main(int argc, char **argv) {
     loader = read_file(argv[2], &loader_size);
     main = read_file(argv[3], &main_size);
     xtide = read_file(argv[4], &xtide_size);
-    main_sectors = sector_count(main_size);
-    xtide_sectors = sector_count(xtide_size);
-
+    main_sectors = (uint32_t)((main_size + SECTOR_SIZE - 1) / SECTOR_SIZE);
     if (mbr_code_size < MBR_BOOT_CODE_SIZE) {
         fprintf(stderr, "invalid MBR boot code\n");
         return EXIT_FAILURE;
     }
     if (loader_size != SECTOR_SIZE || main_sectors > SBM_MAX_SECTORS ||
-        xtide_sectors == 0 || xtide_sectors > XTIDE_MAX_SECTORS ||
-        xtide_size < (size_t)xtide[2] * SECTOR_SIZE ||
-        xtide[0] != 0x55 || xtide[1] != 0xaa || xtide[2] != xtide_sectors) {
+        !xtide_is_valid(xtide, xtide_size)) {
         fprintf(stderr, "invalid loader, SBM kernel, or XT-IDE image\n");
         return EXIT_FAILURE;
     }
@@ -193,6 +199,8 @@ int main(int argc, char **argv) {
     write_at(fd, 0, mbr, sizeof(mbr));
     write_at(fd, (uint64_t)BOOT_SHIM_LBA * SECTOR_SIZE, boot_shim, sizeof(boot_shim));
     write_at(fd, (uint64_t)SBM_KERNEL_LBA * SECTOR_SIZE, main, main_size);
+    write_at(fd, (uint64_t)XTIDE_LBA * SECTOR_SIZE, xtide_region,
+             sizeof(xtide_region));
     write_at(fd, (uint64_t)XTIDE_LBA * SECTOR_SIZE, xtide, xtide_size);
     if (fsync(fd) != 0 || close(fd) != 0)
         fail(argv[5]);

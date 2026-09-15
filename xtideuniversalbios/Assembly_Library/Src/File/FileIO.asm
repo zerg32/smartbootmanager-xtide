@@ -65,50 +65,6 @@ FileIO_OpenWithPathInDSSIandFileAccessInAL:
 
 
 ;--------------------------------------------------------------------
-; FileIO_ReadDXCXbytesToDSSIusingHandleFromBX
-;	Parameters:
-;		BX:		File handle
-;		DX:CX:	Number of bytes to read
-;		DS:SI:	Ptr to destination buffer
-;	Returns:
-;		AX:		DOS error code if CF set
-;		CF:		Clear if successful
-;				Set if error
-;	Corrupts registers:
-;		AX
-;--------------------------------------------------------------------
-ALIGN JUMP_ALIGN
-FileIO_ReadDXCXbytesToDSSIusingHandleFromBX:
-	push	bp
-	mov		bp, FileIO_ReadCXbytesToDSSIusingHandleFromBX
-	call	SplitLargeReadOrWritesToSmallerBlocks
-	pop		bp
-	ret
-
-
-;--------------------------------------------------------------------
-; FileIO_WriteDXCXbytesFromDSSIusingHandleFromBX
-;	Parameters:
-;		BX:		File handle
-;		DX:CX:	Number of bytes to write
-;		DS:SI:	Ptr to source buffer
-;	Returns:
-;		AX:		DOS error code if CF set
-;		CF:		Clear if successful
-;				Set if error
-;	Corrupts registers:
-;		AX
-;--------------------------------------------------------------------
-ALIGN JUMP_ALIGN
-FileIO_WriteDXCXbytesFromDSSIusingHandleFromBX:
-	push	bp
-	mov		bp, FileIO_WriteCXbytesFromDSSIusingHandleFromBX
-	call	SplitLargeReadOrWritesToSmallerBlocks
-	pop		bp
-	ret
-
-
-;--------------------------------------------------------------------
 ; File position is updated so next read will start where
 ; previous read stopped.
 ;
@@ -157,8 +113,48 @@ FileIO_WriteCXbytesFromDSSIusingHandleFromBX:
 
 
 ;--------------------------------------------------------------------
-; SplitLargeReadOrWritesToSmallerBlocks
+; FileIO_ReadDXCXbytesToDSSIusingHandleFromBX
 ;	Parameters:
+;		BX:		File handle
+;		DX:CX:	Number of bytes to read
+;		DS:SI:	Ptr to destination buffer
+;	Returns:
+;		AX:		DOS error code if CF set
+;		CF:		Clear if successful
+;				Set if error
+;	Corrupts registers:
+;		AX
+;--------------------------------------------------------------------
+ALIGN JUMP_ALIGN
+FileIO_ReadDXCXbytesToDSSIusingHandleFromBX:
+	push	bp
+	mov		bp, FileIO_ReadCXbytesToDSSIusingHandleFromBX
+	jmp		SHORT SplitLargeReadOrWriteToSmallerBlocks
+
+
+;--------------------------------------------------------------------
+; FileIO_WriteDXCXbytesFromDSSIusingHandleFromBX
+;	Parameters:
+;		BX:		File handle
+;		DX:CX:	Number of bytes to write
+;		DS:SI:	Ptr to source buffer
+;	Returns:
+;		AX:		DOS error code if CF set
+;		CF:		Clear if successful
+;				Set if error
+;	Corrupts registers:
+;		AX
+;--------------------------------------------------------------------
+ALIGN JUMP_ALIGN
+FileIO_WriteDXCXbytesFromDSSIusingHandleFromBX:
+	push	bp
+	mov		bp, FileIO_WriteCXbytesFromDSSIusingHandleFromBX
+	; Fall to SplitLargeReadOrWriteToSmallerBlocks
+
+;--------------------------------------------------------------------
+; SplitLargeReadOrWriteToSmallerBlocks
+;	Parameters:
+;		[SP]:	Saved BP (restored on return)
 ;		BX:		File handle
 ;		BP:		Ptr to transfer function
 ;		DX:CX:	Number of bytes to transfer
@@ -170,8 +166,7 @@ FileIO_WriteCXbytesFromDSSIusingHandleFromBX:
 ;	Corrupts registers:
 ;		AX
 ;--------------------------------------------------------------------
-ALIGN JUMP_ALIGN
-SplitLargeReadOrWritesToSmallerBlocks:
+SplitLargeReadOrWriteToSmallerBlocks:
 	push	ds
 	push	si
 	push	dx
@@ -198,15 +193,17 @@ ALIGN JUMP_ALIGN
 	jcxz	.ReturnErrorCodeInAX	; No remaining bytes
 	call	NormalizeDSSI
 	call	bp
+	SKIP1B	dl
+.ErrorOccurredDuringTransfer:
+	pop		cx						; Remove bytes for last transfer
 .ReturnErrorCodeInAX:
 	pop		cx
 	pop		dx
 	pop		si
 	pop		ds
+	pop		bp						; Restore BP saved to stack by "caller"
 	ret
-.ErrorOccurredDuringTransfer:
-	pop		cx						; Remove bytes for last transfer
-	jmp		SHORT .ReturnErrorCodeInAX
+
 
 ;--------------------------------------------------------------------
 ; NormalizeDSSI
@@ -278,9 +275,8 @@ FileIO_GetFileSizeToDXAXusingHandleFromBXandResetFilePosition:
 ALIGN JUMP_ALIGN
 FileIO_CloseUsingHandleFromBX:
 	mov		ah, CLOSE_FILE
-	SKIP2B	f	; cmp ax, <next instruction>
+	SKIP2B	f
 	; Fall to FileIO_SeekFromOriginInALtoOffsetInDXAXusingHandleFromBX
-
 
 ;--------------------------------------------------------------------
 ; FileIO_SeekFromOriginInALtoOffsetInDXAXusingHandleFromBX

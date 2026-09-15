@@ -4,7 +4,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -42,14 +42,50 @@ SECTION .text
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 IdePioBlock_ReadFromXtideRev1:
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	UNROLL_SECTORS_IN_CX_TO_32WORDS
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	UNROLL_SECTORS_IN_CX_TO_16WORDS
+%else
 	UNROLL_SECTORS_IN_CX_TO_OWORDS
+%endif
 	mov		bl, 8		; Bit mask for toggling data low/high reg
 ALIGN JUMP_ALIGN
-.InswLoop:
+.NextIteration:
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	%rep 32	; WORDs
+		XTIDE_INSW
+	%endrep
+	dec		cx
+%ifdef USE_386
+	jnz		.NextIteration
+%else
+	jz		SHORT .BlockTransferred
+	jmp		.NextIteration
+
+ALIGN JUMP_ALIGN
+.BlockTransferred:
+%endif
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	%rep 16	; WORDs
+		XTIDE_INSW
+	%endrep
+%ifdef USE_186
+	loop	.NextIteration
+%else
+	dec		cx
+	jz		SHORT .BlockTransferred
+	jmp		.NextIteration
+
+ALIGN JUMP_ALIGN
+.BlockTransferred:
+%endif
+%else
 	%rep 8	; WORDs
 		XTIDE_INSW
 	%endrep
-	loop	.InswLoop
+	loop	.NextIteration
+%endif
 	ret
 
 
@@ -66,13 +102,40 @@ ALIGN JUMP_ALIGN
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 IdePioBlock_ReadFromXtideRev2_Olivetti:
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	UNROLL_SECTORS_IN_CX_TO_32WORDS
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	UNROLL_SECTORS_IN_CX_TO_16WORDS
+%else
 	UNROLL_SECTORS_IN_CX_TO_OWORDS
+%endif
 ALIGN JUMP_ALIGN
-.InswLoop:
+.NextIteration:
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	%rep 32	; WORDs
+		XTIDE_MOD_OLIVETTI_INSW
+	%endrep
+	dec		cx
+%ifdef USE_386
+	jnz		.NextIteration
+%else
+	jz		SHORT .BlockTransferred
+	jmp		.NextIteration
+
+ALIGN JUMP_ALIGN
+.BlockTransferred:
+%endif
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	%rep 16	; WORDs
+		XTIDE_MOD_OLIVETTI_INSW
+	%endrep
+	loop	.NextIteration
+%else
 	%rep 8	; WORDs
 		XTIDE_MOD_OLIVETTI_INSW
 	%endrep
-	loop	.InswLoop
+	loop	.NextIteration
+%endif
 	ret
 
 
@@ -95,15 +158,41 @@ IdePioBlock_ReadFrom8bitDataPort:
 	shl		cx, 9		; Sectors to BYTEs
 	rep insb
 	ret
+
 %else ; 808x
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	UNROLL_SECTORS_IN_CX_TO_32WORDS
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	UNROLL_SECTORS_IN_CX_TO_16WORDS
+%else
 	UNROLL_SECTORS_IN_CX_TO_OWORDS
+%endif
 ALIGN JUMP_ALIGN
-.ReadNextOword:
+.NextIteration:
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	%rep 64	; BYTEs
+		in		al, dx	; Read BYTE
+		stosb			; Store BYTE to [ES:DI]
+	%endrep
+	dec		cx
+	jz		SHORT .BlockTransferred
+	jmp		.NextIteration
+
+ALIGN JUMP_ALIGN
+.BlockTransferred:
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	%rep 32	; BYTEs
+		in		al, dx	; Read BYTE
+		stosb			; Store BYTE to [ES:DI]
+	%endrep
+	loop	.NextIteration
+%else
 	%rep 16	; BYTEs
 		in		al, dx	; Read BYTE
 		stosb			; Store BYTE to [ES:DI]
 	%endrep
-	loop	.ReadNextOword
+	loop	.NextIteration
+%endif
 	ret
 %endif
 %endif ; MODULE_8BIT_IDE
@@ -131,14 +220,32 @@ IdePioBlock_ReadFrom16bitDataPort:
 	ret
 
 %else ; 808x
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	UNROLL_SECTORS_IN_CX_TO_32WORDS
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	UNROLL_SECTORS_IN_CX_TO_16WORDS
+%else
 	UNROLL_SECTORS_IN_CX_TO_OWORDS
+%endif
 ALIGN JUMP_ALIGN
-.ReadNextOword:
+.NextIteration:
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	%rep 32	; WORDs
+		in		ax, dx	; Read WORD
+		stosw			; Store WORD to [ES:DI]
+	%endrep
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	%rep 16	; WORDs
+		in		ax, dx	; Read WORD
+		stosw			; Store WORD to [ES:DI]
+	%endrep
+%else
 	%rep 8	; WORDs
 		in		ax, dx	; Read WORD
 		stosw			; Store WORD to [ES:DI]
 	%endrep
-	loop	.ReadNextOword
+%endif
+	loop	.NextIteration
 	ret
 %endif
 
@@ -173,14 +280,41 @@ IdePioBlock_ReadFrom32bitDataPort:
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 IdePioBlock_WriteToXtideRev1:
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	UNROLL_SECTORS_IN_CX_TO_16WORDS
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	UNROLL_SECTORS_IN_CX_TO_OWORDS
+%else
 	UNROLL_SECTORS_IN_CX_TO_QWORDS
+%endif
 	mov		bl, 8		; Bit mask for toggling data low/high reg
 ALIGN JUMP_ALIGN
-.OutswLoop:
+.NextIteration:
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	%rep 16	; WORDs
+		XTIDE_OUTSW
+	%endrep
+%ifdef USE_186
+	loop	.NextIteration
+%else
+	dec		cx
+	jz		SHORT .BlockTransferred
+	jmp		.NextIteration
+
+ALIGN JUMP_ALIGN
+.BlockTransferred:
+%endif
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	%rep 8	; WORDs
+		XTIDE_OUTSW
+	%endrep
+	loop	.NextIteration
+%else
 	%rep 4	; WORDs
 		XTIDE_OUTSW
 	%endrep
-	loop	.OutswLoop
+	loop	.NextIteration
+%endif
 	ret
 
 
@@ -197,13 +331,40 @@ ALIGN JUMP_ALIGN
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 IdePioBlock_WriteToXtideRev2:
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	UNROLL_SECTORS_IN_CX_TO_16WORDS
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	UNROLL_SECTORS_IN_CX_TO_OWORDS
+%else
 	UNROLL_SECTORS_IN_CX_TO_QWORDS
+%endif
 ALIGN JUMP_ALIGN
-.WriteNextQword:
+.NextIteration:
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	%rep 16	; WORDs
+		XTIDE_MOD_OUTSW
+	%endrep
+%ifdef USE_186
+	loop	.NextIteration
+%else
+	dec		cx
+	jz		SHORT .BlockTransferred
+	jmp		.NextIteration
+
+ALIGN JUMP_ALIGN
+.BlockTransferred:
+%endif
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	%rep 8	; WORDs
+		XTIDE_MOD_OUTSW
+	%endrep
+	loop	.NextIteration
+%else
 	%rep 4	; WORDs
 		XTIDE_MOD_OUTSW
 	%endrep
-	loop	.WriteNextQword
+	loop	.NextIteration
+%endif
 	ret
 
 
@@ -226,16 +387,79 @@ IdePioBlock_WriteTo8bitDataPort:
 	ret
 
 %else ; 808x
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	UNROLL_SECTORS_IN_CX_TO_16WORDS
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	UNROLL_SECTORS_IN_CX_TO_OWORDS
+%else
 	UNROLL_SECTORS_IN_CX_TO_QWORDS
+%endif
 ALIGN JUMP_ALIGN
-.WriteNextQword:
+.NextIteration:
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	%rep 32	; BYTEs
+		lodsb			; Load BYTE from [DS:SI]
+		out		dx, al	; Write BYTE
+	%endrep
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	%rep 16	; BYTEs
+		lodsb			; Load BYTE from [DS:SI]
+		out		dx, al	; Write BYTE
+	%endrep
+%else
 	%rep 8	; BYTEs
 		lodsb			; Load BYTE from [DS:SI]
 		out		dx, al	; Write BYTE
 	%endrep
-	loop	.WriteNextQword
+%endif
+	loop	.NextIteration
 	ret
 %endif
+
+
+;--------------------------------------------------------------------
+; IdePioBlock_WriteToJukoD16X			Juko Laboratories, Ltd. D16-X
+;	Parameters:
+;		CX:		Block size in 512-byte sectors
+;		DX:		IDE Data port address
+;		DS:SI:	Normalized ptr to buffer containing data
+;	Returns:
+;		Nothing
+;	Corrupts registers:
+;		AX, CX
+;--------------------------------------------------------------------
+ALIGN JUMP_ALIGN
+IdePioBlock_WriteToJukoD16X:
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	UNROLL_SECTORS_IN_CX_TO_16WORDS
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	UNROLL_SECTORS_IN_CX_TO_OWORDS
+%else
+	UNROLL_SECTORS_IN_CX_TO_QWORDS
+%endif
+ALIGN JUMP_ALIGN
+.NextIteration:
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	%rep 16	; WORDs
+		lodsw			; Load WORD from [DS:SI]
+		xchg	ah, al
+		out		dx, ax	; Write WORD
+	%endrep
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	%rep 8	; WORDs
+		lodsw			; Load WORD from [DS:SI]
+		xchg	ah, al
+		out		dx, ax	; Write WORD
+	%endrep
+%else
+	%rep 4	; WORDs
+		lodsw			; Load WORD from [DS:SI]
+		xchg	ah, al
+		out		dx, ax	; Write WORD
+	%endrep
+%endif
+	loop	.NextIteration
+	ret
 %endif ; MODULE_8BIT_IDE
 
 
@@ -259,14 +483,32 @@ IdePioBlock_WriteTo16bitDataPort:
 	ret
 
 %else ; 808x
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	UNROLL_SECTORS_IN_CX_TO_16WORDS
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	UNROLL_SECTORS_IN_CX_TO_OWORDS
+%else
 	UNROLL_SECTORS_IN_CX_TO_QWORDS
+%endif
 ALIGN JUMP_ALIGN
-.WriteNextQword:
+.NextIteration:
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	%rep 16	; WORDs
+		lodsw			; Load WORD from [DS:SI]
+		out		dx, ax	; Write WORD
+	%endrep
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	%rep 8	; WORDs
+		lodsw			; Load WORD from [DS:SI]
+		out		dx, ax	; Write WORD
+	%endrep
+%else
 	%rep 4	; WORDs
 		lodsw			; Load WORD from [DS:SI]
 		out		dx, ax	; Write WORD
 	%endrep
-	loop	.WriteNextQword
+%endif
+	loop	.NextIteration
 	ret
 %endif
 

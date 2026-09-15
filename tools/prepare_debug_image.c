@@ -21,6 +21,7 @@ enum {
     OLD_KERNEL_LBA = 64,
     OLD_KERNEL_SECTORS = 64,
     XTIDE_LBA = 128,
+    XTIDE_MAX_SECTORS = 32,
     DOS_PARTITION_LBA = 1008,
     DOS_PARTITION_SECTORS = 3145728,
     SECOND_PARTITION_LBA = 3146736,
@@ -133,9 +134,23 @@ static void checksum_sbm(uint8_t *main, size_t size) {
     main[checksum_offset] = (uint8_t)(0 - sum);
 }
 
+static int xtide_is_valid(const uint8_t *xtide, size_t size) {
+    uint8_t checksum = 0;
+    size_t index;
+
+    if (size < 3 || xtide[0] != 0x55 || xtide[1] != 0xaa ||
+        xtide[2] == 0 || xtide[2] > XTIDE_MAX_SECTORS ||
+        size != (size_t)xtide[2] * SECTOR_SIZE)
+        return 0;
+    for (index = 0; index < size; ++index)
+        checksum = (uint8_t)(checksum + xtide[index]);
+    return checksum == 0;
+}
+
 int main(int argc, char **argv) {
     uint8_t mbr[SECTOR_SIZE];
     uint8_t zeroes[OLD_KERNEL_SECTORS * SECTOR_SIZE] = {0};
+    uint8_t xtide_region[XTIDE_MAX_SECTORS * SECTOR_SIZE] = {0};
     uint8_t *debug_mbr, *debug_stage, *loader, *main, *xtide;
     size_t debug_mbr_size, debug_stage_size, loader_size, main_size, xtide_size;
     size_t loader_magic;
@@ -158,7 +173,7 @@ int main(int argc, char **argv) {
 
     if (debug_mbr_size != MBR_CODE_SIZE ||
         debug_stage_size != DEBUG_STAGE_SECTORS * SECTOR_SIZE ||
-        loader_size != SECTOR_SIZE || xtide_size != 8192) {
+        loader_size != SECTOR_SIZE || !xtide_is_valid(xtide, xtide_size)) {
         fprintf(stderr, "invalid diagnostic, loader, or XT-IDE size\n");
         return EXIT_FAILURE;
     }
@@ -224,6 +239,8 @@ int main(int argc, char **argv) {
              loader, loader_size);
     write_at(fd, (uint64_t)OLD_KERNEL_LBA * SECTOR_SIZE,
              zeroes, sizeof(zeroes));
+    write_at(fd, (uint64_t)XTIDE_LBA * SECTOR_SIZE, xtide_region,
+             sizeof(xtide_region));
     write_at(fd, (uint64_t)XTIDE_LBA * SECTOR_SIZE, xtide, xtide_size);
 
     if (fsync(fd) != 0 || close(fd) != 0)

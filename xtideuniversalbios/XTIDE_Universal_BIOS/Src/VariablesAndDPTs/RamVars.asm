@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -35,20 +35,19 @@ SECTION .text
 RamVars_Initialize:
 	push	es
 
-%ifndef USE_AT
-	mov		ax, LITE_MODE_RAMVARS_SEGMENT
-	test	BYTE [cs:ROMVARS.wFlags], FLG_ROMVARS_FULLMODE
-	jz		SHORT .InitializeRamvars	; No need to steal RAM
-%endif
+	mov		ax, [cs:ROMVARS.wRamVars]
+	test	ax, ax						; UMB segment or LITE_MODE_RAMVARS_SEGMENT?
+	jnz		SHORT .InitializeRamvars	; No need to steal RAM
 
-	LOAD_BDA_SEGMENT_TO	ds, ax, !		; Zero AX
+	mov		di, BDA.wBaseMem
+	mov		ds, ax
 	mov		al, [cs:ROMVARS.bStealSize]
-	sub		[BDA.wBaseMem], ax
+	sub		[di], ax
 %ifdef USE_186
-	imul	ax, [BDA.wBaseMem], 64
+	imul	ax, [di], 64
 %else
 	mov		al, 64
-	mul		WORD [BDA.wBaseMem]
+	mul		WORD [di]
 %endif
 
 .InitializeRamvars:
@@ -66,10 +65,11 @@ RamVars_Initialize:
 	pop		es
 	ret
 
+
 ;--------------------------------------------------------------------
 ; Returns segment to RAMVARS.
-; RAMVARS might be located at the top of interrupt vectors (0030:0000h)
-; or at the top of system base RAM.
+; RAMVARS might be located at the top of interrupt vectors (0030:0000h),
+; at the top of system base RAM or in a user configured UMB.
 ;
 ; RamVars_GetSegmentToDS
 ;	Parameters:
@@ -81,23 +81,11 @@ RamVars_Initialize:
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 RamVars_GetSegmentToDS:
+	mov		ds, [cs:ROMVARS.wRamVars]
+	mov		di, ds
+	test	di, di					; UMB segment or LITE_MODE_RAMVARS_SEGMENT?
+	jnz		SHORT .Return
 
-%ifndef USE_AT	; Always in Full Mode for AT builds
-	test	BYTE [cs:ROMVARS.wFlags], FLG_ROMVARS_FULLMODE
-	jnz		SHORT .GetStolenSegmentToDS
-	%ifndef USE_186
-		mov		di, LITE_MODE_RAMVARS_SEGMENT
-		mov		ds, di
-	%else
-		push	LITE_MODE_RAMVARS_SEGMENT
-		pop		ds
-	%endif
-	ret
-%endif
-
-ALIGN JUMP_ALIGN
-.GetStolenSegmentToDS:
-	LOAD_BDA_SEGMENT_TO	ds, di
 ;%ifdef USE_186
 ;	imul	di, [BDA.wBaseMem], 64	; 2 bytes less but slower, especially on 386/486 processors
 ;%else
@@ -110,6 +98,7 @@ ALIGN JUMP_ALIGN
 	add		di, BYTE 64				; DI to next stolen kB
 	cmp		WORD [RAMVARS.wSignature], RAMVARS_RAM_SIGNATURE
 	jne		SHORT .LoopStolenKBs	; Loop until sign found (always found eventually)
+.Return:
 	ret
 
 
@@ -134,37 +123,6 @@ RamVars_GetHardDiskCountFromBDAtoAX:
 %endif
 
 
-;--------------------------------------------------------------------
-; RamVars_GetCountOfKnownDrivesToAX
-;	Parameters:
-;		DS:		RAMVARS segment
-;	Returns:
-;		AX:		Total hard disk count
-;	Corrupts registers:
-;		None
-;--------------------------------------------------------------------
-ALIGN JUMP_ALIGN
-RamVars_GetCountOfKnownDrivesToAX:
-	mov		ax, [RAMVARS.wFirstDrvAndCount]
-	add		al, ah
-	and		ax, BYTE 7fh
-	ret
-
-;--------------------------------------------------------------------
-; RamVars_GetIdeControllerCountToCX
-;	Parameters:
-;		Nothing
-;	Returns:
-;		CX:		Number of IDE controllers to handle
-;	Corrupts registers:
-;		Nothing
-;--------------------------------------------------------------------
-ALIGN JUMP_ALIGN
-RamVars_GetIdeControllerCountToCX:
-	eMOVZX	cx, [cs:ROMVARS.bIdeCnt]
-	ret
-
-
 %ifdef MODULE_SERIAL_FLOPPY
 ;--------------------------------------------------------------------
 ; RamVars_UnpackFlopCntAndFirstToAL
@@ -183,3 +141,35 @@ RamVars_UnpackFlopCntAndFirstToAL:
 	sar		al, 1
 	ret
 %endif
+
+
+;--------------------------------------------------------------------
+; RamVars_GetIdeControllerCountToCX
+;	Parameters:
+;		Nothing
+;	Returns:
+;		CX:		Number of IDE controllers to handle
+;	Corrupts registers:
+;		Nothing
+;--------------------------------------------------------------------
+ALIGN JUMP_ALIGN
+RamVars_GetIdeControllerCountToCX:
+	eMOVZX	cx, BYTE [cs:ROMVARS.bIdeCnt]
+	ret
+
+
+;--------------------------------------------------------------------
+; RamVars_GetCountOfKnownDrivesToAX
+;	Parameters:
+;		DS:		RAMVARS segment
+;	Returns:
+;		AX:		Total hard disk count
+;	Corrupts registers:
+;		None
+;--------------------------------------------------------------------
+ALIGN JUMP_ALIGN
+RamVars_GetCountOfKnownDrivesToAX:
+	mov		ax, [RAMVARS.wFirstDrvAndCount]
+	add		al, ah
+	and		ax, BYTE 7Fh
+	ret

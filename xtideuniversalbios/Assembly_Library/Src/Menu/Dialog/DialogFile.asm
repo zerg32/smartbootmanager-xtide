@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -120,8 +120,10 @@ ALIGN JUMP_ALIGN
 ALIGN WORD_ALIGN
 .rgszInfoStringLookup:
 	dw		g_szChangeDrive
+%ifndef EXCLUDE_FROM_XTIDECFG
 	dw		g_szSelectDirectory
 	dw		g_szCreateNew
+%endif
 
 .rgfnEventHandlers:
 istruc MENUEVENT
@@ -155,10 +157,9 @@ InitializeMenuinitFromSSBP:
 	call	CreateStringFromCurrentDirectoryContentsToESDI
 	call	LoadItemStringBufferToESDI
 	call	SortDirectoryContentsStringFromESDIwithCountInCX
-	call	RemoveLastLFandTerminateESDIwithNull
-
-	call	Registers_CopySSBPtoDSSI
 	xor		ax, ax
+	mov		[es:di-1], al							; Terminate with NULL
+	call	Registers_CopySSBPtoDSSI
 	call	Dialog_EventInitializeMenuinitFromDSSIwithHighlightedItemInAX
 	call	GetInfoLinesToCXandDialogFlagsToAX
 	mov		[bp+MENUINIT.bInfoLines], cl
@@ -202,7 +203,7 @@ CreateStringFromCurrentDirectoryContentsToESDI:
 	CALL_DISPLAY_LIBRARY PrepareOffScreenBufferInESBXwithLengthInCX	; ES:DI now points to buffer
 
 	lds		si, [bp+DIALOG.fpDialogIO]
-	eMOVZX	cx, [si+FILE_DIALOG_IO.bFileAttributes]
+	eMOVZX	cx, BYTE [si+FILE_DIALOG_IO.bFileAttributes]
 	lds		si, [si+FILE_DIALOG_IO.fpFileFilterString]
 	call	Directory_UpdateDTAForFirstMatchForDSSIwithAttributesInCX
 
@@ -435,23 +436,6 @@ ALIGN JUMP_ALIGN
 
 
 ;--------------------------------------------------------------------
-; RemoveLastLFandTerminateESDIwithNull
-;	Parameters:
-;		ES:DI:	Ptr to end of buffer to terminate
-;	Returns:
-;		Nothing
-;	Corrupts registers:
-;		AX
-;--------------------------------------------------------------------
-ALIGN JUMP_ALIGN
-RemoveLastLFandTerminateESDIwithNull:
-	dec		di
-	xor		ax, ax
-	stosb
-	ret
-
-
-;--------------------------------------------------------------------
 ; GetInfoLinesToCXandDialogFlagsToAX
 ;	Parameters:
 ;		SS:BP:	Ptr to DIALOG
@@ -585,10 +569,12 @@ RefreshFilesToDisplay:
 ALIGN JUMP_ALIGN
 HandleFunctionKeyFromAH:
 	call	GetDialogFlagsToAL
+%ifndef EXCLUDE_FROM_XTIDECFG
 	cmp		ah, KEY_FILEDIALOG_NEW_FILE_OR_DIR
 	je		SHORT HandleFunctionKeyForCreatingNewFileOrDirectory
 	cmp		ah, KEY_FILEDIALOG_SELECT_DIRECTORY
 	je		SHORT HandleFunctionKeyForSelectingDirectoryInsteadOfFile
+%endif
 	cmp		ah, KEY_FILEDIALOG_CHANGE_DRIVE
 	je		SHORT HandleFunctionKeyForDriveChange
 ReturnWithoutHandlingKeystroke:
@@ -606,6 +592,7 @@ ReturnWithoutHandlingKeystroke:
 ;	Corrupts registers:
 ;		All, except BP
 ;--------------------------------------------------------------------
+%ifndef EXCLUDE_FROM_XTIDECFG
 ALIGN JUMP_ALIGN
 HandleFunctionKeyForCreatingNewFileOrDirectory:
 	test	al, FLG_FILEDIALOG_NEW
@@ -648,6 +635,7 @@ HandleFunctionKeyForSelectingDirectoryInsteadOfFile:
 	test	al, FLG_FILEDIALOG_DIRECTORY
 	jz		SHORT ReturnWithoutHandlingKeystroke
 	; Fall to CloseFileDialogAfterSuccessfulSelection
+%endif ; EXCLUDE_FROM_XTIDECFG
 
 ;--------------------------------------------------------------------
 ; CloseFileDialogAfterSuccessfulSelection

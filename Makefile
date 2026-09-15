@@ -15,7 +15,7 @@ MBR_ASM := tools/syslinux_mbr.asm
 MBR_BIN := $(BUILD_DIR)/mbr-syslinux.bin
 endif
 
-XTIDE_DEFS := -DMODULE_STRINGS_COMPRESSED -DMODULE_HOTKEYS -DMODULE_8BIT_IDE -DMODULE_EBIOS -DMODULE_SERIAL -DMODULE_SERIAL_FLOPPY -DMODULE_POWER_MANAGEMENT -DNO_ATAID_VALIDATION -DCLD_NEEDED -DUSE_AT -DUSE_286 -DMODULE_IRQ -DMODULE_COMPATIBLE_TABLES -DUSE_386 -DMODULE_ADVANCED_ATA -DMODULE_WIN9X_CMOS_HACK -DXTIDE_SBM_RETURN -DBIOS_SIZE=8192
+XTIDE_DEFS := -DMODULE_STRINGS_COMPRESSED -DMODULE_HOTKEYS -DMODULE_8BIT_IDE -DMODULE_EBIOS -DMODULE_SERIAL -DMODULE_SERIAL_FLOPPY -DMODULE_POWER_MANAGEMENT -DNO_ATAID_VALIDATION -DCLD_NEEDED -DUSE_AT -DUSE_286 -DMODULE_IRQ -DMODULE_COMPATIBLE_TABLES -DUSE_386 -DMODULE_ADVANCED_ATA -DMODULE_WIN9X_CMOS_HACK -DXTIDE_SBM_RETURN
 XTIDE_INCLUDES := $(foreach dir,$(XTIDE_DIR)/Inc $(XTIDE_DIR)/Inc/Controllers $(XTIDE_DIR)/Src $(XTIDE_DIR)/Src/Handlers $(XTIDE_DIR)/Src/Handlers/Int13h $(XTIDE_DIR)/Src/Handlers/Int13h/EBIOS $(XTIDE_DIR)/Src/Handlers/Int13h/Tools $(XTIDE_DIR)/Src/Handlers/Int19h $(XTIDE_DIR)/Src/Device $(XTIDE_DIR)/Src/Device/IDE $(XTIDE_DIR)/Src/Device/MemoryMappedIDE $(XTIDE_DIR)/Src/Device/Serial $(XTIDE_DIR)/Src/Initialization $(XTIDE_DIR)/Src/Initialization/AdvancedAta $(XTIDE_DIR)/Src/Menus $(XTIDE_DIR)/Src/Menus/BootMenu $(XTIDE_DIR)/Src/Libraries $(XTIDE_DIR)/Src/VariablesAndDPTs xtideuniversalbios/Assembly_Library/Inc xtideuniversalbios/Assembly_Library/Src xtideuniversalbios/Assembly_Library/Src/Display xtideuniversalbios/Assembly_Library/Src/File xtideuniversalbios/Assembly_Library/Src/Keyboard xtideuniversalbios/Assembly_Library/Src/Menu xtideuniversalbios/Assembly_Library/Src/Menu/Dialog xtideuniversalbios/Assembly_Library/Src/String xtideuniversalbios/Assembly_Library/Src/Time xtideuniversalbios/Assembly_Library/Src/Util xtideuniversalbios/Assembly_Library/Src/Serial,$(addprefix -I,$(dir)))
 
 .PHONY: all clean qemu debug-images debug-binaries final-image boot-components boot-region ci-boot-components
@@ -33,7 +33,7 @@ $(BUILD_DIR)/sbm-main.bin: $(SBM_DIR)/main.asm $(SBM_DIR)/xtide_preload.asm $(SB
 
 $(BUILD_DIR)/xtide-386.bin: $(XTIDE_DIR)/Src/Main.asm $(XTIDE_DIR)/Src/Handlers/Int19h.asm | $(BUILD_DIR)
 	$(NASM) -f bin $(XTIDE_INCLUDES) -Worphan-labels -Ox $(XTIDE_DEFS) -o $@ $<
-	perl xtideuniversalbios/Tools/checksum.pl $@ 8192
+	perl xtideuniversalbios/Tools/checksum.pl $@
 
 $(BUILD_DIR)/mbr-generic.bin: tools/generic_mbr.asm | $(BUILD_DIR)
 	$(NASM) -f bin -o $@ $<

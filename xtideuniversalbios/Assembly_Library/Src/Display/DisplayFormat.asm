@@ -365,14 +365,14 @@ s_FormatStringFromSegmentCS:
 	mov		si, [bp]
 
 	cmp		si, BYTE 7Fh		; well within the boundaries of ROMVARS_size
-	jb		.notFormatted
+	jb		SHORT .notFormatted
 
 	dec		bp
 	dec		bp
 	call	DisplayFormat_ParseCharacters
 	inc		bp					; will be decremented after the call is done
 	inc		bp
-	jmp		.done
+	jmp		SHORT .done
 
 .notFormatted:
 	call	DisplayPrint_NullTerminatedStringFromCSSI

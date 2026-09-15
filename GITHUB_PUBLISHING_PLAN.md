@@ -146,6 +146,17 @@
 
 ## Step 2: Upgrade XT-IDE
 
+Status: in progress on `upgrade/xtide-r638`. The official r638 tree was
+retrieved on 2026-09-15 from
+`https://www.xtideuniversalbios.org/svn/xtideuniversalbios/!svn/bc/638/trunk/`.
+Its canonical source-tree tar SHA-256 is
+`31da76a8e41589ff19900d333f39f578aa96b2c8c8d02ebbc59b9234a8c729df`.
+The variable-size build and installer regression suite pass. Normal-EDD and
+forced-CHS diagnostic images stayed running under QEMU for 15 seconds, but the
+physical 486 boot test on 2026-09-15 reached SBM with r638 installed. The card
+has no operating system, so DOS, Windows, large-disk, and repeated-boot
+validation remain required before merging or tagging r638.
+
 1. Create an `upgrade/xtide-r638` branch.
 2. Export official XT-IDE SVN revision 638 from:
 

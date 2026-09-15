@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -19,11 +19,6 @@
 
 %ifndef RAMVARS_INC
 %define RAMVARS_INC
-
-; Segment when RAMVARS is stored to top of interrupt vectors.
-%ifndef USE_AT
-	LITE_MODE_RAMVARS_SEGMENT	EQU		30h
-%endif
 
 
 %ifdef MODULE_SERIAL_FLOPPY OR MODULE_DRIVEXLATE

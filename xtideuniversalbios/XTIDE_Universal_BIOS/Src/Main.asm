@@ -14,7 +14,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -28,7 +28,8 @@
 ; Visit http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 ;
 
-	ORG 0							; Code start offset 0000h
+	%define ORIGIN 0
+	ORG ORIGIN						; Code start offset 0000h
 
 	; We must define included libraries before including "AssemblyLibrary.inc".
 %define	EXCLUDE_FROM_XUB					; Exclude unused library functions
@@ -63,14 +64,18 @@
 SECTION .text
 
 ; ROM variables (must start at offset 0)
-CNT_ROM_BLOCKS		EQU		BIOS_SIZE / 512		; number of 512B blocks, 16 = 8kB BIOS
 istruc ROMVARS
-	at	ROMVARS.wRomSign,	dw	0AA55h			; PC ROM signature
-	at	ROMVARS.bRomSize,	db	CNT_ROM_BLOCKS	; ROM size in 512B blocks
-	at	ROMVARS.rgbJump,	jmp	Initialize_FromMainBiosRomSearch
-	at	ROMVARS.rgbSign,	db	FLASH_SIGNATURE
-	at	ROMVARS.szTitle,	db	TITLE_STRING
-	at	ROMVARS.szVersion,	db	ROM_VERSION_STRING
+	at	ROMVARS.wRomSign,		dw	0AA55h					; PC Option ROM BIOS signature
+	at	ROMVARS.bRomSize,		db	CNT_ROM_BLOCKS			; ROM BIOS size in 512B blocks (defined below at the very end of the BIOS)
+	at	ROMVARS.rgbJump,		jmp	Initialize_FromMainBiosRomSearch	; Required to be a jump for compatibility with PhoenixBIOS 4.0 (see BIOS Programmer's Guide v10.pdf)
+	at	ROMVARS.rgbSign,		db	FLASH_SIGNATURE
+	at	ROMVARS.szTitle,		db	TITLE_STRING
+	at	ROMVARS.szVersion,		db	"r"
+								db	ROM_VERSION_STRING
+								db	BUILD_DATE_STRING,NULL
+%ifdef MODULE_BOOT_MENU
+	at	ROMVARS.pColorTheme,	dw	ColorTheme				; Offset to the ATTRIBUTE_CHARS struc that holds the color theme
+%endif
 
 ;---------------------------;
 ; AT Build default settings ;
@@ -81,12 +86,16 @@ istruc ROMVARS
 %else
 	at	ROMVARS.wFlags,			dw	FLG_ROMVARS_FULLMODE | MASK_ROMVARS_INCLUDED_MODULES
 %endif
+	at	ROMVARS.wRamVars,		dw	NULL					; Use 'stolen' top of conventional memory by default in Full mode
 	at	ROMVARS.wDisplayMode,	dw	DEFAULT_TEXT_MODE
 %ifdef MODULE_BOOT_MENU
 	at	ROMVARS.wBootTimeout,	dw	BOOT_MENU_DEFAULT_TIMEOUT
-	at	ROMVARS.pColorTheme,	dw	ColorTheme				; Offset to the ATTRIBUTE_CHARS struc that holds the color theme
 %endif
+%ifdef USE_PS2
+	at	ROMVARS.bIdeCnt,		db	4						; Number of supported controllers with two McIDE adapters
+%else
 	at	ROMVARS.bIdeCnt,		db	2						; Number of supported controllers
+%endif
 	at	ROMVARS.bBootDrv,		db	80h						; Boot Menu default drive
 	at	ROMVARS.bMinFddCnt, 	db	0						; Do not force minimum number of floppy drives
 	at	ROMVARS.bStealSize,		db	1						; Steal 1kB from base memory
@@ -95,28 +104,52 @@ istruc ROMVARS
 	at	ROMVARS.ideVars0+IDEVARS.wBasePort,			dw	DEVICE_ATA_PRIMARY_PORT 		; Controller Command Block base port
 	at	ROMVARS.ideVars0+IDEVARS.wControlBlockPort,	dw	DEVICE_ATA_PRIMARY_PORTCTRL 	; Controller Control Block base port
 	at	ROMVARS.ideVars0+IDEVARS.bDevice,			db	DEVICE_16BIT_ATA
+%ifdef MODULE_IRQ
+%ifdef USE_PS2
+	at	ROMVARS.ideVars0+IDEVARS.bIRQ,				db	0
+%else
 	at	ROMVARS.ideVars0+IDEVARS.bIRQ,				db	14
+%endif
+%endif
 	at	ROMVARS.ideVars0+IDEVARS.drvParamsMaster+DRVPARAMS.wFlags,	dw	DISABLE_WRITE_CACHE | FLG_DRVPARAMS_BLOCKMODE | (TRANSLATEMODE_AUTO<<TRANSLATEMODE_FIELD_POSITION)
 	at	ROMVARS.ideVars0+IDEVARS.drvParamsSlave+DRVPARAMS.wFlags,	dw	DISABLE_WRITE_CACHE | FLG_DRVPARAMS_BLOCKMODE | (TRANSLATEMODE_AUTO<<TRANSLATEMODE_FIELD_POSITION)
 
 	at	ROMVARS.ideVars1+IDEVARS.wBasePort,			dw	DEVICE_ATA_SECONDARY_PORT
 	at	ROMVARS.ideVars1+IDEVARS.wControlBlockPort,	dw	DEVICE_ATA_SECONDARY_PORTCTRL
 	at	ROMVARS.ideVars1+IDEVARS.bDevice,			db	DEVICE_16BIT_ATA
+%ifdef MODULE_IRQ
+%ifdef USE_PS2
+	at	ROMVARS.ideVars1+IDEVARS.bIRQ,				db	0
+%else
 	at	ROMVARS.ideVars1+IDEVARS.bIRQ,				db	15
+%endif
+%endif
 	at	ROMVARS.ideVars1+IDEVARS.drvParamsMaster+DRVPARAMS.wFlags,	dw	DISABLE_WRITE_CACHE | FLG_DRVPARAMS_BLOCKMODE | (TRANSLATEMODE_AUTO<<TRANSLATEMODE_FIELD_POSITION)
 	at	ROMVARS.ideVars1+IDEVARS.drvParamsSlave+DRVPARAMS.wFlags,	dw	DISABLE_WRITE_CACHE | FLG_DRVPARAMS_BLOCKMODE | (TRANSLATEMODE_AUTO<<TRANSLATEMODE_FIELD_POSITION)
 
 	at	ROMVARS.ideVars2+IDEVARS.wBasePort,			dw	DEVICE_ATA_TERTIARY_PORT
 	at	ROMVARS.ideVars2+IDEVARS.wControlBlockPort,	dw	DEVICE_ATA_TERTIARY_PORTCTRL
 	at	ROMVARS.ideVars2+IDEVARS.bDevice,			db	DEVICE_16BIT_ATA
+%ifdef MODULE_IRQ
+%ifdef USE_PS2
+	at	ROMVARS.ideVars2+IDEVARS.bIRQ,				db	0
+%else
 	at	ROMVARS.ideVars2+IDEVARS.bIRQ,				db	0	; Should be 11 on the GSI Inc. Model 2C
+%endif
+%endif
 	at	ROMVARS.ideVars2+IDEVARS.drvParamsMaster+DRVPARAMS.wFlags,	dw	DISABLE_WRITE_CACHE | FLG_DRVPARAMS_BLOCKMODE | (TRANSLATEMODE_AUTO<<TRANSLATEMODE_FIELD_POSITION)
 	at	ROMVARS.ideVars2+IDEVARS.drvParamsSlave+DRVPARAMS.wFlags,	dw	DISABLE_WRITE_CACHE | FLG_DRVPARAMS_BLOCKMODE | (TRANSLATEMODE_AUTO<<TRANSLATEMODE_FIELD_POSITION)
 
 	at	ROMVARS.ideVars3+IDEVARS.wBasePort,			dw	DEVICE_ATA_QUATERNARY_PORT
 	at	ROMVARS.ideVars3+IDEVARS.wControlBlockPort,	dw	DEVICE_ATA_QUATERNARY_PORTCTRL
 	at	ROMVARS.ideVars3+IDEVARS.bDevice,			db	DEVICE_16BIT_ATA
+%ifdef MODULE_IRQ
+%ifdef USE_PS2
+	at	ROMVARS.ideVars3+IDEVARS.bIRQ,				db	0
+%else
 	at	ROMVARS.ideVars3+IDEVARS.bIRQ,				db	0	; Should be 10 on the GSI Inc. Model 2C
+%endif
+%endif
 	at	ROMVARS.ideVars3+IDEVARS.drvParamsMaster+DRVPARAMS.wFlags,	dw	DISABLE_WRITE_CACHE | FLG_DRVPARAMS_BLOCKMODE | (TRANSLATEMODE_AUTO<<TRANSLATEMODE_FIELD_POSITION)
 	at	ROMVARS.ideVars3+IDEVARS.drvParamsSlave+DRVPARAMS.wFlags,	dw	DISABLE_WRITE_CACHE | FLG_DRVPARAMS_BLOCKMODE | (TRANSLATEMODE_AUTO<<TRANSLATEMODE_FIELD_POSITION)
 
@@ -128,10 +161,10 @@ istruc ROMVARS
 ; XT and XT+ Build default settings ;
 ;-----------------------------------;
 	at	ROMVARS.wFlags,			dw	MASK_ROMVARS_INCLUDED_MODULES
+	at	ROMVARS.wRamVars,		dw	LITE_MODE_RAMVARS_SEGMENT
 	at	ROMVARS.wDisplayMode,	dw	DEFAULT_TEXT_MODE
 %ifdef MODULE_BOOT_MENU
 	at	ROMVARS.wBootTimeout,	dw	BOOT_MENU_DEFAULT_TIMEOUT
-	at	ROMVARS.pColorTheme,	dw	ColorTheme				; Offset to the ATTRIBUTE_CHARS struc that holds the color theme
 %endif
 	at	ROMVARS.bIdeCnt,		db	1
 	at	ROMVARS.bBootDrv,		db	80h						; Boot Menu default drive
@@ -311,15 +344,14 @@ iend
 	%include "AH41h_CheckIfExtensionsPresent.asm"
 %endif
 
-
+	BIOS_SIZE		EQU		(($-$$) + 2047) & ~2047	; Align the size to a 2 kB boundary (required for compatibility reasons)
+	CNT_ROM_BLOCKS	EQU		BIOS_SIZE >> 9			; BIOS_SIZE / 512
 %ifndef CHECK_FOR_UNUSED_ENTRYPOINTS
 ; Although it's very unlikely to happen, we give warnings for builds that cannot be automatically checksummed due to the size being too large.
 ; In some cases it's theoretically possible to checksum the build anyway (manually) which is why these are warnings and not errors.
 %if BIOS_SIZE = 8192				; A small build, possibly a candidate for the ROM socket on a 3Com 3C503 card.
-	%if ($-$$) <= BIOS_SIZE			; Only give warnings when the problem isn't obvious anyway.
-		%if ($-$$) > BIOS_SIZE - 3
-			%warning "This build is too large to be auto-checksummed!"
-		%endif
+	%if ($-$$) > BIOS_SIZE - 3
+		%warning "This build is too large to be auto-checksummed!"
 	%endif
 %elif ($-$$) = BIOS_SIZE			; A large or tiny build.
 	%warning "This build is too large to be auto-checksummed!"

@@ -32,13 +32,10 @@
 #include "../library/Library.h"
 #include "../library/FlatImage.h"
 
-#include "../../XTIDE_Universal_BIOS/Inc/Version.inc"
-
 char *bannerStrings[] = {
 	"SerDrive - XTIDE Universal BIOS Serial Drive Server",
-	"Copyright (C) 2012-2019 by XTIDE Universal BIOS Team",
+	"Copyright (C) 2012-2022 by XTIDE Universal BIOS Team",
 	"Released under GNU GPL v2, with ABSOLUTELY NO WARRANTY",
-	ROM_VERSION_STRING,
 	"",
 	NULL };
 

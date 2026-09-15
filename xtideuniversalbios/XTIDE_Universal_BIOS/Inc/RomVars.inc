@@ -4,7 +4,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -107,24 +107,25 @@ DEVICE_ATA_QUATERNARY_PORTCTRL			EQU		(DEVICE_ATA_QUATERNARY_PORT + STANDARD_CON
 ; Device types for IDEVARS.bDevice
 ; IDE Devices are grouped so device numbers cannot be changed without modifying code elsewhere!
 COUNT_OF_STANDARD_IDE_DEVICES			EQU	2	; 16- and 32-bit controllers
-COUNT_OF_8BIT_IDE_DEVICES				EQU	10
+COUNT_OF_8BIT_IDE_DEVICES				EQU	11
 COUNT_OF_ALL_IDE_DEVICES				EQU	(COUNT_OF_8BIT_IDE_DEVICES + COUNT_OF_STANDARD_IDE_DEVICES)
 ; Standard port mapped I/O
 DEVICE_16BIT_ATA						EQU	(0<<1)
 DEVICE_32BIT_ATA						EQU	(1<<1)
 DEVICE_8BIT_ATA							EQU	((COUNT_OF_STANDARD_IDE_DEVICES+0)<<1)	; 16- or 32-bit controller in 8-bit mode
-DEVICE_8BIT_XTIDE_REV1					EQU	((COUNT_OF_STANDARD_IDE_DEVICES+1)<<1)
+DEVICE_8BIT_JUKO_D16X					EQU	((COUNT_OF_STANDARD_IDE_DEVICES+1)<<1)
+DEVICE_8BIT_XTIDE_REV1					EQU	((COUNT_OF_STANDARD_IDE_DEVICES+2)<<1)
 ; Address lines A0 and A3 are swapped
-DEVICE_8BIT_XTIDE_REV2					EQU	((COUNT_OF_STANDARD_IDE_DEVICES+2)<<1)	; Or rev 1 with swapped A0 and A3...
-DEVICE_8BIT_XTIDE_REV2_OLIVETTI			EQU	((COUNT_OF_STANDARD_IDE_DEVICES+3)<<1)	; ...in Olivetti M24 and derivatives
+DEVICE_8BIT_XTIDE_REV2					EQU	((COUNT_OF_STANDARD_IDE_DEVICES+3)<<1)	; Or rev 1 with swapped A0 and A3...
+DEVICE_8BIT_XTIDE_REV2_OLIVETTI			EQU	((COUNT_OF_STANDARD_IDE_DEVICES+4)<<1)	; ...in Olivetti M24 and derivatives
 ; IDE Register offsets are SHL 1
-DEVICE_8BIT_XTCF_PIO8					EQU	((COUNT_OF_STANDARD_IDE_DEVICES+4)<<1)	; XT-CF using 8-bit PIO mode
-DEVICE_8BIT_XTCF_PIO8_WITH_BIU_OFFLOAD	EQU	((COUNT_OF_STANDARD_IDE_DEVICES+5)<<1)	; XT-CF using 8-bit PIO mode, but with 16-bit instructions
-DEVICE_8BIT_XTCF_PIO16_WITH_BIU_OFFLOAD	EQU	((COUNT_OF_STANDARD_IDE_DEVICES+6)<<1)	; Lo-tech 8-bit IDE Adapter
-DEVICE_8BIT_XTCF_DMA					EQU	((COUNT_OF_STANDARD_IDE_DEVICES+7)<<1)	; XT-CFv3 using DMA
+DEVICE_8BIT_XTCF_PIO8					EQU	((COUNT_OF_STANDARD_IDE_DEVICES+5)<<1)	; XT-CF using 8-bit PIO mode
+DEVICE_8BIT_XTCF_PIO8_WITH_BIU_OFFLOAD	EQU	((COUNT_OF_STANDARD_IDE_DEVICES+6)<<1)	; XT-CF using 8-bit PIO mode, but with 16-bit instructions
+DEVICE_8BIT_XTCF_PIO16_WITH_BIU_OFFLOAD	EQU	((COUNT_OF_STANDARD_IDE_DEVICES+7)<<1)	; Lo-tech 8-bit IDE Adapter
+DEVICE_8BIT_XTCF_DMA					EQU	((COUNT_OF_STANDARD_IDE_DEVICES+8)<<1)	; XT-CFv3 using DMA
 ; Memory Mapped I/O
-DEVICE_8BIT_JRIDE_ISA					EQU	((COUNT_OF_STANDARD_IDE_DEVICES+8)<<1)	; JR-IDE/ISA (Memory Mapped I/O)
-DEVICE_8BIT_ADP50L						EQU	((COUNT_OF_STANDARD_IDE_DEVICES+9)<<1)	; SVC ADP50L (Memory Mapped I/O)
+DEVICE_8BIT_JRIDE_ISA					EQU	((COUNT_OF_STANDARD_IDE_DEVICES+9)<<1)	; JR-IDE/ISA (Memory Mapped I/O)
+DEVICE_8BIT_ADP50L						EQU	((COUNT_OF_STANDARD_IDE_DEVICES+10)<<1)	; SVC ADP50L (Memory Mapped I/O)
 ; Virtual devices
 DEVICE_SERIAL_PORT						EQU	(COUNT_OF_ALL_IDE_DEVICES<<1)
 
@@ -132,27 +133,34 @@ FIRST_XTCF_DEVICE						EQU	DEVICE_8BIT_XTCF_PIO8
 LAST_XTCF_DEVICE						EQU	DEVICE_8BIT_XTCF_DMA
 XTCF_DEVICE_OFFSET						EQU	FIRST_XTCF_DEVICE						; Used for XT-CF device <--> mode conversion
 
+; Segment when RAMVARS is stored to top of interrupt vectors.
+LITE_MODE_RAMVARS_SEGMENT				EQU	30h
 
 ; ROM Variables. Written to the ROM image before flashing.
+; The ROMVARS version in Version.inc must be incremented whenever this struc changes.
 struc ROMVARS
 	.wRomSign			resb	2	; ROM Signature (AA55h)
 	.bRomSize			resb	1	; ROM size in 512 byte blocks
 	.rgbJump			resb	3	; First instruction to ROM init (jmp)
 
 	.rgbSign			resb	6	; Signature for XTIDE Configurator Program (must be even length)
-	.szTitle			resb	31	; BIOS title string
-	.szVersion			resb	25	; BIOS version string
+	.szTitle			resb	32	; BIOS title string
+	.szVersion			resb	18	; BIOS version string (supports up to r999)
 
+	.pColorTheme		resb	2	; Ptr to the color attribute struc used by the boot menu and hotkey bar
 	.wFlags				resb	2	; Word for ROM flags
+	; Note! Any additional ROMVARS must be added below if they are supposed to be copied
+	; over when doing "Load old settings from EEPROM" to a new BIOS loaded from file.
+	.wRamVars			resb	2	; Segment address for RamVars
 	.wDisplayMode		resb	2	; Display mode for boot menu
 	.wBootTimeout		resb	2	; Boot Menu selection timeout in system timer ticks
-	.pColorTheme		resb	2	; Ptr to the color attribute struc used by the boot menu and hotkey bar
 	.bIdeCnt			resb	1	; Number of available IDE controllers
 	.bBootDrv			resb	1	; Default drive to boot from
 	.bMinFddCnt			resb	1	; Minimum number of Floppy Drives
 	.bStealSize			resb	1	; Number of 1kB blocks stolen from 640kB base RAM
 	.bIdleTimeout		resb	1	; Standby timer value
 
+						alignb	2	; WORD align the IDEVARS structures
 	.ideVarsBegin:
 	.ideVars0			resb	IDEVARS_size
 	.ideVars1			resb	IDEVARS_size
@@ -189,17 +197,18 @@ FLG_ROMVARS_SERIAL_SCANDETECT 			EQU	(1<<3)	; Scan COM ports at the end of drive
 
 ; Here in case the configuration needs to know functionality is present. Note! Changing the order/location of these flags
 ; also requires changes elsewhere as they are usually tested using byte-accesses for efficiency.
+FLG_ROMVARS_MODULE_MFM_COMPATIBILITY	EQU	(1<<4)
 FLG_ROMVARS_MODULE_POWER_MANAGEMENT		EQU	(1<<5)
 FLG_ROMVARS_MODULE_8BIT_IDE				EQU	(1<<6)
 FLG_ROMVARS_MODULE_8BIT_IDE_ADVANCED	EQU (1<<7)
 FLG_ROMVARS_MODULE_ADVANCED_ATA			EQU	(1<<8)
 FLG_ROMVARS_MODULE_BOOT_MENU			EQU	(1<<9)
-FLG_ROMVARS_MODULE_EBIOS				EQU	(1<<10)
+FLG_ROMVARS_MODULE_EBIOS				EQU	(1<<10)	; Currently unused
 FLG_ROMVARS_MODULE_HOTKEYS				EQU	(1<<11)
 FLG_ROMVARS_MODULE_IRQ					EQU	(1<<12)
 FLG_ROMVARS_MODULE_SERIAL				EQU (1<<13)
-FLG_ROMVARS_MODULE_SERIAL_FLOPPY		EQU (1<<14)
-FLG_ROMVARS_MODULE_STRINGS_COMPRESSED	EQU (1<<15)
+FLG_ROMVARS_MODULE_SERIAL_FLOPPY		EQU (1<<14)	; Currently unused
+FLG_ROMVARS_MODULE_STRINGS_COMPRESSED	EQU (1<<15)	; Currently unused
 
 
 ; Boot Menu Display Modes (see Assembly Library Display.inc for standard modes)

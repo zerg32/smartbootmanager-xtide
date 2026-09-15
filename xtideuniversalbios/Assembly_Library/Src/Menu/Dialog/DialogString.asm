@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -54,12 +54,6 @@ StringEventHandler:
 
 
 ALIGN JUMP_ALIGN
-.InitializeMenuinitFromDSSI:
-	xor		ax, ax
-	jmp		Dialog_EventInitializeMenuinitFromDSSIforSingleItemWithHighlightedItemInAX
-
-
-ALIGN JUMP_ALIGN
 .IdleProcessing:
 	xor		cx, cx						; Item 0 is used as input line
 	call	MenuText_AdjustDisplayContextForDrawingItemFromCX
@@ -72,7 +66,7 @@ ALIGN JUMP_ALIGN
 ALIGN WORD_ALIGN
 .rgfnEventHandlers:
 istruc MENUEVENT
-	at	MENUEVENT.InitializeMenuinitFromDSSI,	dw	.InitializeMenuinitFromDSSI
+	at	MENUEVENT.InitializeMenuinitFromDSSI,	dw	Dialog_EventInitializeMenuinitFromDSSIforSingleItemWithItemZero
 	at	MENUEVENT.ExitMenu,						dw	Dialog_EventExitMenu
 	at	MENUEVENT.IdleProcessing,				dw	.IdleProcessing
 	at	MENUEVENT.ItemHighlightedFromCX,		dw	Dialog_EventNotHandled

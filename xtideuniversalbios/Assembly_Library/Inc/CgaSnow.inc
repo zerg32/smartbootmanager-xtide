@@ -7,7 +7,7 @@
 ; CALL_WAIT_FOR_RETRACE_IF_NECESSARY_THEN
 ; JMP_WAIT_FOR_RETRACE_IF_NECESSARY_THEN
 ;	Parameters:
-;		%1:		Instruction that accessed CGA memory
+;		%1:		Instruction that accesses CGA memory
 ;		AL:		Character to output
 ;		AH:		Attribute to output (stosw only)
 ;		DS:		BDA segment (zero)

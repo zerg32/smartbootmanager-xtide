@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -22,13 +22,14 @@
 
 ; Equates and defines
 BOOT_MENU_DEFAULT_TIMEOUT			EQU		(TICKS_PER_MINUTE / 2)
-MAX_ALLOWED_IDE_CONTROLLERS			EQU		4	; Maximum number of IDE controllers
+MAX_ALLOWED_IDE_CONTROLLERS			EQU		4		; Maximum number of IDE controllers
 MAX_LITE_MODE_CONTROLLERS			EQU		2
-EEPROM_POLLING_TIMEOUT_TICKS		EQU		3	; 1 tick = 54.9 ms
-XTIDE_SIGNATURE_LENGTH				EQU		6	; XTIDE Universal BIOS signature string length (must be even)
+EEPROM_POLLING_TIMEOUT_TICKS		EQU		3		; 1 tick = 54.9 ms
+XTIDE_SIGNATURE_LENGTH				EQU		6		; XTIDE Universal BIOS signature string length (must be even)
 NUMBER_OF_EEPROM_TYPES				EQU		5
 MAX_EEPROM_SIZE_IN_BYTES			EQU		65536
-
+SST_PAGE_SIZE_SHIFT					EQU		12		; Minimum we can erase is a 4K sector.
+SST_PAGE_SIZE						EQU		(1 << SST_PAGE_SIZE_SHIFT)
 
 ; Program global variables
 struc CFGVARS
@@ -56,6 +57,7 @@ struc EEPROM_TYPE
 	.2864_8kiB_MOD		resb	2	; Reversed A0 and A3 address lines
 	.28256_32kiB		resb	2
 	.28512_64kiB		resb	2
+	.SST_39SF			resb	2
 endstruc
 
 ; Software Data Protection commands
@@ -98,12 +100,13 @@ struc FLASHVARS
 	.wTimeoutCounter			resb	2
 	.wLastOffsetWritten			resb	2
 	.bLastByteWritten			resb	1
-	.flashResult				resb	1
+	.bFlashResult				resb	1
 endstruc
 
 ; Flashing results
 struc FLASH_RESULT
-	.success					resb	2
+	.Success					resb	2
+	.DeviceNotDetected			resb	2
 	.PollingTimeoutError		resb	2
 	.DataVerifyError			resb	2
 endstruc

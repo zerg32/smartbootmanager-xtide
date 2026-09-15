@@ -4,7 +4,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -52,6 +52,10 @@ PDC20x30_DetectControllerForIdeBaseInBX:
 ;		AL, BX
 ;--------------------------------------------------------------------
 GetPdcIDtoAX:
+;Force ID_PDC20230 instead of PDC20630 detection
+;mov	ax, ID_PDC20230<<8
+;jmp		SHORT DisablePdcProgrammingMode
+
 	push	dx
 
 	; Try to enable PDC 20630 extra registers
@@ -86,9 +90,22 @@ GetPdcIDtoAX:
 ;		AL
 ;--------------------------------------------------------------------
 DisablePdcProgrammingMode:
-	add		dx, BYTE HIGH_CYLINDER_REGISTER
+	add		dx, BYTE HIGH_CYLINDER_REGISTER	; 1F5h
 	in		al, dx
 	add		dx, -HIGH_CYLINDER_REGISTER		; Sets CF for PDC20x30_DetectControllerForIdeBaseInBX
+%if 0
+	; Disassembly of VG4.BIN shows that bit 7 (programming mode activated)
+	; is cleared manually after reading from HIGH_CYLINDER_REGISTER
+	; That does not seem to be necessary.
+	inc		dx
+	inc		dx
+	call	AdvAtaInit_InputWithDelay
+	and		al, 7Fh
+	out		dx, al
+	dec		dx
+	dec		dx
+	stc
+%endif
 .Return:
 	ret
 
@@ -107,26 +124,31 @@ EnablePdcProgrammingMode:
 	; Set bit 7 to sector count register
 	inc		dx
 	inc		dx
-	in		al, dx	; 1F2h (SECTOR_COUNT_REGISTER)
+	call	AdvAtaInit_InputWithDelay	; 1F2h (SECTOR_COUNT_REGISTER)
 	or		al, 80h
 	out		dx, al
 
-	; PDC detection sequence (should delay be added between register reads?)
-	add		dx, BYTE HIGH_CYLINDER_REGISTER - SECTOR_COUNT_REGISTER
-	in		al, dx	; 1F5h
+	; PDC detection sequence
+	add		dx, BYTE HIGH_CYLINDER_REGISTER - SECTOR_COUNT_REGISTER	; 5 - 2
 	cli
+	call	AdvAtaInit_InputWithDelay	; 1F5
+
 	sub		dx, BYTE HIGH_CYLINDER_REGISTER - SECTOR_COUNT_REGISTER
-	in		al, dx	; 1F2h
-	add		dx, STANDARD_CONTROL_BLOCK_OFFSET + (ALTERNATE_STATUS_REGISTER_in - SECTOR_COUNT_REGISTER)
-	in		al, dx	; 3F6h
-	in		al, dx	; 3F6h
+	call	AdvAtaInit_InputWithDelay	; 1F2h
+
+	add		dx, STANDARD_CONTROL_BLOCK_OFFSET + (ALTERNATE_STATUS_REGISTER_in - SECTOR_COUNT_REGISTER)	; 200h+(6-2)
+	call	AdvAtaInit_InputWithDelay	; 3F6h
+
+	call	AdvAtaInit_InputWithDelay	; 3F6h
+
 	sub		dx, STANDARD_CONTROL_BLOCK_OFFSET + (ALTERNATE_STATUS_REGISTER_in - SECTOR_COUNT_REGISTER)
-	in		al, dx	; 1F2h
-	in		al, dx	; 1F2h
+	call	AdvAtaInit_InputWithDelay	; 1F2h
+
+	call	AdvAtaInit_InputWithDelay	; 1F2h
 	sti
 
 	; PDC20230C and PDC20630 clears the bit we set at the beginning
-	in		al, dx	; 1F2h
+	call	AdvAtaInit_InputWithDelay	; 1F2h
 	dec		dx
 	dec		dx		; Base port
 	test	al, 80h	; Clears CF
@@ -185,6 +207,11 @@ PDC20x30_InitializeForDPTinDSDI:
 	cmp		BYTE [di+DPT_ADVANCED_ATA.wControllerID+1], ID_PDC20630
 	jne		SHORT .InitializationCompleted
 	call	SetPdc20630SpeedForDriveInCX
+
+	; TODO: Should we first call SetPdc20630SpeedForDriveInCX and then
+	; force SetSpeedForDriveInCX to PIO 0 (maximum speed setting 8)?
+	; Need to test with PCD20630.
+
 .InitializationCompleted:
 	mov		dx, [di+DPT.wBasePort]
 	call	DisablePdcProgrammingMode
@@ -199,7 +226,7 @@ PDC20x30_InitializeForDPTinDSDI:
 ;		DX:		IDE Base port
 ;		DS:DI:	Ptr to DPT
 ;	Returns:
-;		DX:		Sector Number Register
+;		DX:		Sector Number Register (1F3h)
 ;	Corrupts registers:
 ;		AX, BX
 ;--------------------------------------------------------------------
@@ -210,21 +237,70 @@ SetSpeedForDriveInCX:
 	cs xlat
 	xchg	bx, ax
 
-	add		dx, BYTE SECTOR_NUMBER_REGISTER
-	mov		bh, ~MASK_PDCSCR_DEV1SPEED	; Assume slave
+	add		dx, BYTE SECTOR_NUMBER_REGISTER	; 1F3h
+	mov		bh, ~MASK_PDCSNR_DEV1SPEED		; Assume slave
 	inc		cx
+	mov		ah, 7	; Max speed value. Set unknown bit 7 if either of drives are set to this
 	loop	.SetSpeed
-	eSHL_IM	bl, POS_PDCSCR_DEV0SPEED
-	mov		bh, ~MASK_PDCSCR_DEV0SPEED
+	mov		ah, 7 << POS_PDCSNR_DEV0SPEED
+	eSHL_IM	bl, POS_PDCSNR_DEV0SPEED
+	mov		bh, ~MASK_PDCSNR_DEV0SPEED
 .SetSpeed:
 	in		al, dx
 	and		al, bh
 	or		al, bl
-	cmp		bl, 7
+	cmp		bl, ah
 	jb		SHORT .OutputNewValue
-	or		al, FLG_PDCSCR_UNKNOWN_BIT7	; Flag for PIO 2 and above?
+	or		al, FLG_PDCSNR_UNKNOWN_BIT7		; Flag for PIO 2 and above?
 .OutputNewValue:
 	out		dx, al
+
+	; The above speed set does not work with Octek VL-COMBO rev 3.2 with PDC20230C
+	; Only thing to make it work is to set FLG_PDCSCR_BOTHMAX to 1F2h. Are all PDC20230C controllers
+	; like that? If so, why the above speed is not set? Or does the VL-COMBO or other PDC20230C
+	; controllers have a jumper to prevent speed setup by software? (PDC20230B can only be set
+	; by hardware, for example), like pin-compatible operation with older PDC20230B, perhaps?
+	; Datasheets would be very useful...
+	; For now, we just set the FLG_PDCSCR_BOTHMAX bit if either of the drives are set to speed 7
+	;
+	; Code below is not perfect. It does not properly test if both drives support PIO 2 but
+	; likely if slave does, so does master (and if slave does not, we clear the
+	; FLG_PDCSCR_BOTHMAX set by master)
+	mov		bl, 1	; Set bit 0, see VG4.BIN comments below
+	test	al, al
+	jns		SHORT .DoNotSetMaxSpeedBit
+	or		bl, FLG_PDCSCR_BOTHMAX
+.DoNotSetMaxSpeedBit:
+	dec		dx		; SECTOR_COUNT_REGISTER, 1F2h
+	call	AdvAtaInit_InputWithDelay
+	and		al, ~FLG_PDCSCR_BOTHMAX
+	or		al, bl
+	out		dx, al
+
+	; VG4.BIN ("External BIOS") does the following after programming speed (1F3h)
+	; (It never seems to set the speed bit we just set above).
+	; The below code does not seem to have any effect, at least not for PDC20230C.
+	; Why is bit 0 set to 1F2h?
+	; Is it just to keep programming mode active if it has timeout, for example?
+	; But after all that it just reads 1F5h to disable programming mode.
+%if 0
+	; Test code start
+	push	cx
+	mov		cx, 100
+	DELAY_WITH_LOOP_INSTRUCTION_NA
+
+	; Does below tell the controller that new speed is set?
+	in		al, dx
+	or		al, 1
+	out		dx, al
+
+	mov		cl, 100
+	DELAY_WITH_LOOP_INSTRUCTION_NA
+	pop		cx
+	; Test code end
+%endif
+
+	inc		dx		; SECTOR_NUMBER_REGISTER, 1F3h
 	ret
 
 .rgbPioModeToPDCspeedValue:
@@ -238,7 +314,7 @@ SetSpeedForDriveInCX:
 ;	Parameters:
 ;		CX:		0 for master, 1 for slave drive
 ;		DS:DI:	Ptr to DPT
-;		DX:		Sector Number Register
+;		DX:		Sector Number Register, 1F3h
 ;	Returns:
 ;		DX:		Low Cylinder Register
 ;	Corrupts registers:

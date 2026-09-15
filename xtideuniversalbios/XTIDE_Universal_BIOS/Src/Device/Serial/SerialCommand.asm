@@ -153,7 +153,7 @@ SerialCommand_IdentifyDeviceToBufferInESSIwithDriveSelectByteInBH:
 	xor		ax, ax
 
 	push	si
-	call	FindDPT_ToDSDIforSerialDevice
+	call	FindDPT_ToDSDIforSerialDevice	; Preserves AX
 	pop		si
 %ifdef MODULE_SERIAL_FLOPPY
 	jnc		SHORT .founddpt
@@ -161,7 +161,7 @@ SerialCommand_IdentifyDeviceToBufferInESSIwithDriveSelectByteInBH:
 ; If not found above with FindDPT_ToDSDIforSerialDevice, DI will point to the DPT after the last hard disk DPT
 ; So, if there was a previously found floppy disk, DI will point to that DPT and we use that value for the slave.
 ;
-	cmp		BYTE [RAMVARS.xlateVars+XLATEVARS.bFlopCntAndFirst], 0
+	cmp		[RAMVARS.xlateVars+XLATEVARS.bFlopCntAndFirst], al	; Zero?
 	je		SHORT .notfounddpt
 .founddpt:
 %else

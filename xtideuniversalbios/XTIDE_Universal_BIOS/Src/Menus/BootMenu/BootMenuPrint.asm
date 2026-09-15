@@ -122,11 +122,11 @@ BootMenuPrint_RefreshInformation:
 	call	AH8h_GetDriveParameters
 .around:
 
-	mov		ax, g_szFddSizeOr							; .PrintXTFloppyType
+	mov		ax, g_szFddSizeOr
 	test	bl, bl										; Two possibilities? (FLOPPY_TYPE_525_OR_35_DD)
 	jz		SHORT .PushAXAndOutput
 
-	mov		al, (g_szFddUnknown - $$) & 0xff			; .PrintUnknownFloppyType
+	mov		al, (g_szFddUnknown - $$) & 0xff
 	cmp		bl, FLOPPY_TYPE_35_ED
 	ja		SHORT .PushAXAndOutput
 	; Fall to .PrintKnownFloppyType
@@ -217,8 +217,8 @@ BootMenuPrint_RefreshInformation:
 	call	AH15h_GetSectorCountFromForeignDriveToBXDXAX
 
 .ConvertSectorCountInBXDXAXtoSizeAndPushForFormat:
-	ePUSH_T	cx, g_szCapacityNum		; Push format substring
 	call	Size_ConvertSectorCountInBXDXAXtoKiB
+	ePUSH_T	cx, g_szCapacityNum		; Push format substring
 	mov		cx, BYTE_MULTIPLES.kiB
 	call	Size_GetSizeToAXAndCharToDLfromBXDXAXwithMagnitudeInCX
 	push	ax						; Size in magnitude

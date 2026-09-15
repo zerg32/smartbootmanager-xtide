@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -35,11 +35,11 @@ g_szDetectOuter:		db	"%s at %s: ",NULL
 %ifdef MODULE_SERIAL
 g_szDetectCOM:			db	"COM%c%s",NULL
 g_szDetectCOMAuto:		db	" Detect",NULL
-g_szDetectCOMSmall:		db	"/%u%u00",NULL					; IDE Master at COM1/9600:
-g_szDetectCOMLarge:		db	"/%u.%uK",NULL					; IDE Master at COM1/19.2K:
+g_szDetectCOMSmall:		db	"/%u%u00",NULL					; Master at COM1/9600:
+g_szDetectCOMLarge:		db	"/%u.%uK",NULL					; Master at COM1/19.2K:
 %endif
 g_szDetectEnd:
-g_szDetectPort:			db	"%x",NULL						; IDE Master at 1F0h:
+g_szDetectPort:			db	"%x",NULL						; Master at 1F0h:
 
 %ifndef CHECK_FOR_UNUSED_ENTRYPOINTS
 	%if ((g_szDetectEnd-$$) & 0xff00) <> ((g_szDetectStart-$$) & 0xff00)
@@ -66,11 +66,17 @@ g_szBootMenuTitle:	db	"%s%c",LF,CR						; -=XTIDE ... =- and null (eaten)
 g_szDriveName:		db	"%z",LF,CR,NULL
 
 
-; Boot loader strings
+; Boot loader and drive detection strings
 g_szTryToBoot:			db	"Booting %c",ANGLE_QUOTE_RIGHT,"%c",LF,CR,NULL
 g_szBootSectorNotFound:	db	"Boot sector " 			; String fall through...
 g_szNotFound:			db	"not found",LF,CR,NULL
 g_szReadError:			db	"Error %x!",LF,CR,NULL
+%ifdef MODULE_ATAPI
+g_szAtapiDevice:		db	"ATAPI device",LF,CR,NULL
+%endif
+%ifndef NO_ATAID_VALIDATION
+g_szValidationFailed:	db	"failed validation",LF,CR,NULL
+%endif
 
 
 %ifdef MODULE_HOTKEYS
@@ -143,6 +149,7 @@ g_szDeviceTypeValues_16bit:				db	" 16",NULL
 g_szDeviceTypeValues_32bit:				db	" 32",NULL
 %ifdef MODULE_8BIT_IDE OR MODULE_8BIT_IDE_ADVANCED OR MODULE_SERIAL
 g_szDeviceTypeValues_8bit:				db	"  8",NULL
+g_szDeviceTypeValues_JukoD16X:			db	"J16",NULL
 g_szDeviceTypeValues_XTIDEr1:			db	"D8 ",NULL	; Dual 8-bit
 g_szDeviceTypeValues_XTIDEr2:			db	"X8 ",NULL	; A0<->A3 swapped 8-bit
 g_szDeviceTypeValues_XTIDEr2_Olivetti:	db	"X8O",NULL	; Same as above but in Olivetti M24 and derivatives
@@ -184,41 +191,44 @@ g_szDeviceTypeValues_Serial:			db	"SER",NULL
 	%if g_szDeviceTypeValues_8bit <> g_szDeviceTypeValues_32bit + g_szDeviceTypeValues_Displacement
 		%error "g_szDeviceTypeValues Displacement Incorrect 3"
 	%endif
-	%if g_szDeviceTypeValues_XTIDEr1 <> g_szDeviceTypeValues_8bit + g_szDeviceTypeValues_Displacement
+	%if g_szDeviceTypeValues_JukoD16X <> g_szDeviceTypeValues_8bit + g_szDeviceTypeValues_Displacement
 		%error "g_szDeviceTypeValues Displacement Incorrect 4"
 	%endif
-	%if g_szDeviceTypeValues_XTIDEr2 <> g_szDeviceTypeValues_XTIDEr1 + g_szDeviceTypeValues_Displacement
+	%if g_szDeviceTypeValues_XTIDEr1 <> g_szDeviceTypeValues_JukoD16X + g_szDeviceTypeValues_Displacement
 		%error "g_szDeviceTypeValues Displacement Incorrect 5"
 	%endif
-	%if g_szDeviceTypeValues_XTIDEr2_Olivetti <> g_szDeviceTypeValues_XTIDEr2 + g_szDeviceTypeValues_Displacement
+	%if g_szDeviceTypeValues_XTIDEr2 <> g_szDeviceTypeValues_XTIDEr1 + g_szDeviceTypeValues_Displacement
 		%error "g_szDeviceTypeValues Displacement Incorrect 6"
+	%endif
+	%if g_szDeviceTypeValues_XTIDEr2_Olivetti <> g_szDeviceTypeValues_XTIDEr2 + g_szDeviceTypeValues_Displacement
+		%error "g_szDeviceTypeValues Displacement Incorrect 7"
 	%endif
 
 	%ifdef MODULE_8BIT_IDE_ADVANCED OR MODULE_SERIAL
 
 	%if g_szDeviceTypeValues_XTCFpio8 <> g_szDeviceTypeValues_XTIDEr2_Olivetti + g_szDeviceTypeValues_Displacement
-		%error "g_szDeviceTypeValues Displacement Incorrect 7"
-	%endif
-	%if g_szDeviceTypeValues_XTCFpio8BIU <> g_szDeviceTypeValues_XTCFpio8 + g_szDeviceTypeValues_Displacement
 		%error "g_szDeviceTypeValues Displacement Incorrect 8"
 	%endif
-	%if g_szDeviceTypeValues_XTCFpio16BIU <> g_szDeviceTypeValues_XTCFpio8BIU + g_szDeviceTypeValues_Displacement
+	%if g_szDeviceTypeValues_XTCFpio8BIU <> g_szDeviceTypeValues_XTCFpio8 + g_szDeviceTypeValues_Displacement
 		%error "g_szDeviceTypeValues Displacement Incorrect 9"
 	%endif
-	%if g_szDeviceTypeValues_XTCFdma <> g_szDeviceTypeValues_XTCFpio16BIU + g_szDeviceTypeValues_Displacement
+	%if g_szDeviceTypeValues_XTCFpio16BIU <> g_szDeviceTypeValues_XTCFpio8BIU + g_szDeviceTypeValues_Displacement
 		%error "g_szDeviceTypeValues Displacement Incorrect 10"
 	%endif
-	%if g_szDeviceTypeValues_JrIde <> g_szDeviceTypeValues_XTCFdma + g_szDeviceTypeValues_Displacement
+	%if g_szDeviceTypeValues_XTCFdma <> g_szDeviceTypeValues_XTCFpio16BIU + g_szDeviceTypeValues_Displacement
 		%error "g_szDeviceTypeValues Displacement Incorrect 11"
 	%endif
-	%if g_szDeviceTypeValues_ADP50L <> g_szDeviceTypeValues_JrIde + g_szDeviceTypeValues_Displacement
+	%if g_szDeviceTypeValues_JrIde <> g_szDeviceTypeValues_XTCFdma + g_szDeviceTypeValues_Displacement
 		%error "g_szDeviceTypeValues Displacement Incorrect 12"
+	%endif
+	%if g_szDeviceTypeValues_ADP50L <> g_szDeviceTypeValues_JrIde + g_szDeviceTypeValues_Displacement
+		%error "g_szDeviceTypeValues Displacement Incorrect 13"
 	%endif
 
 	%ifdef MODULE_SERIAL
 
 	%if g_szDeviceTypeValues_Serial <> g_szDeviceTypeValues_ADP50L + g_szDeviceTypeValues_Displacement
-		%error "g_szDeviceTypeValues Displacement Incorrect 13"
+		%error "g_szDeviceTypeValues Displacement Incorrect 14"
 	%endif
 
 	%endif ; MODULE_SERIAL

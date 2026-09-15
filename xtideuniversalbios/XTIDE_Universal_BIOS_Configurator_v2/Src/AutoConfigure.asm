@@ -4,7 +4,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -84,8 +84,12 @@ ChecksumSystemBios:
 	inc		bx
 	cmp		ax, dx
 	jne		SHORT .NextChecksum
+	test	BYTE [di+ROMVARS.wFlags], FLG_ROMVARS_MODULE_MFM_COMPATIBILITY
+	mov		dx, g_szDlgIncompatibleBuild
+	jnz		SHORT .DisplayNotificationFromCSDX
 	or		BYTE [di+ROMVARS.wFlags], FLG_ROMVARS_CLEAR_BDA_HD_COUNT
 	mov		dx, g_szDlgBadBiosFound
+.DisplayNotificationFromCSDX:
 	jmp		Dialogs_DisplayNotificationFromCSDX
 
 ALIGN WORD_ALIGN
@@ -117,18 +121,26 @@ CalculateCRC_CCITTfromDSSIwithSizeInCX:
 	lodsb
 	xor		dh, al
 	mov		bl, dh
+%ifdef USE_186
+	rol		bx, 4
+%else
 	rol		bx, 1
 	rol		bx, 1
 	rol		bx, 1
 	rol		bx, 1
+%endif
 	xor		dx, bx
 	rol		bx, 1
 	xchg	dh, dl
 	xor		dx, bx
+%ifdef USE_186
+	ror		bx, 4
+%else
 	ror		bx, 1
 	ror		bx, 1
 	ror		bx, 1
 	ror		bx, 1
+%endif
 	and		bl, ah
 	xor		dx, bx
 	ror		bx, 1
@@ -155,11 +167,11 @@ DetectOlivettiM24:
 	int		BIOS_TIME_PCI_PNP_INTERRUPT_1Ah
 	inc		ch			; Hours changed?
 	jz		SHORT .ThisIsNotAnOlivettiM24
-	mov		BYTE [cs:IsOlivettiM24], 1
+	mov		BYTE [cs:bIsOlivettiM24], 1
 .ThisIsNotAnOlivettiM24:
 	ret
 
-IsOlivettiM24:
+bIsOlivettiM24:
 	db		0
 
 
@@ -248,6 +260,8 @@ DetectIdePortsAndDevices:
 ALIGN JUMP_ALIGN
 EnableInterruptsForAllStandardControllers:
 	jcxz	.NoControllersDetected
+	test	BYTE [ROMVARS.wFlags+1], FLG_ROMVARS_MODULE_IRQ >> 8
+	jz		SHORT .NoModuleIrq
 	call	Buffers_IsXTbuildLoaded
 	je		SHORT .DoNotEnableIRQforXTbuilds
 	push	di
@@ -284,6 +298,7 @@ EnableInterruptsForAllStandardControllers:
 	pop		cx
 	pop		di
 .DoNotEnableIRQforXTbuilds:
+.NoModuleIrq:
 .NoControllersDetected:
 	ret
 

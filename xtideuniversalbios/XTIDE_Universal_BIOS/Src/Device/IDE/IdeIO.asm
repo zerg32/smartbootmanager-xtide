@@ -4,7 +4,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -20,6 +20,10 @@
 
 ; Section containing code
 SECTION .text
+
+%ifndef NOSWAPA0A3LOOKUPTABLE			; Not defined in the makefile?
+	%define NOSWAPA0A3LOOKUPTABLE 2		; Set this to 0, 1 or 2. 2 saves the most space, 0 the least.
+%endif
 
 ;--------------------------------------------------------------------
 ; IdeIO_InputStatusRegisterToAL
@@ -54,12 +58,18 @@ IdeIO_InputToALfromIdeRegisterInDL:
 	xor		dh, dh	; IDE Register index now in DX...
 	mov		al, [di+DPT_ATA.bDevice]
 	cmp		al, DEVICE_8BIT_XTIDE_REV2
-	jb		SHORT .InputToALfromRegisterInDX	; Standard IDE controllers and XTIDE rev 1
+	jb		SHORT .InputToALfromRegisterInDX	; Standard IDE controllers, Juko D16-X and XTIDE rev 1
+%if NOSWAPA0A3LOOKUPTABLE = 0
 	mov		bx, dx	; ...and BX for A0<->A3 swap and for memory mapped I/O
+%endif
 
 %ifdef MODULE_8BIT_IDE_ADVANCED
 	cmp		al, DEVICE_8BIT_XTIDE_REV2_OLIVETTI
 	jbe		SHORT .ReverseA0andA3fromRegisterIndexInDX
+
+%if NOSWAPA0A3LOOKUPTABLE <> 0
+	mov		bl, dl	; ...and BL for memory mapped I/O
+%endif
 
 	eSHL_IM	dx, 1	; ADP50L and XT-CF
 	cmp		al, DEVICE_8BIT_JRIDE_ISA
@@ -78,7 +88,15 @@ IdeIO_InputToALfromIdeRegisterInDL:
 %endif
 
 .ReverseA0andA3fromRegisterIndexInDX:
+%if NOSWAPA0A3LOOKUPTABLE = 0
+; 5 bytes plus the lookup table (8 bytes).
 	mov		dl, [cs:bx+g_rgbSwapA0andA3fromIdeRegisterIndex]
+%else
+; 8 bytes. No lookup table.
+	test	dl, 1
+	jz		SHORT .InputToALfromRegisterInDX
+	xor		dl, 1001b						; Set A3, Clear A0
+%endif
 
 .InputToALfromRegisterInDX:
 	add		dx, [di+DPT.wBasePort]
@@ -101,7 +119,7 @@ IdeIO_OutputALtoIdeControlBlockRegisterInDL:
 	xor		dh, dh	; IDE Register index now in DX
 	mov		bl, [di+DPT_ATA.bDevice]
 	cmp		bl, DEVICE_8BIT_XTIDE_REV2
-	jb		SHORT .OutputALtoControlBlockRegisterInDX	; Standard IDE controllers and XTIDE rev 1
+	jb		SHORT .OutputALtoControlBlockRegisterInDX	; Standard IDE controllers, Juko D16-X and XTIDE rev 1
 
 %ifdef MODULE_8BIT_IDE_ADVANCED
 	cmp		bl, DEVICE_8BIT_XTIDE_REV2_OLIVETTI
@@ -156,7 +174,7 @@ IdeIO_OutputALtoIdeRegisterInDL:
 	xor		dh, dh	; IDE Register index now in DX
 	mov		bl, [di+DPT_ATA.bDevice]
 	cmp		bl, DEVICE_8BIT_XTIDE_REV2
-	jb		SHORT OutputALtoRegisterInDX	; Standard IDE controllers and XTIDE rev 1
+	jb		SHORT OutputALtoRegisterInDX	; Standard IDE controllers, Juko D16-X and XTIDE rev 1
 
 %ifdef MODULE_8BIT_IDE_ADVANCED
 	cmp		bl, DEVICE_8BIT_XTIDE_REV2_OLIVETTI
@@ -180,9 +198,23 @@ IdeIO_OutputALtoIdeRegisterInDL:
 %endif
 
 .ReverseA0andA3fromRegisterIndexInDX:
+%if NOSWAPA0A3LOOKUPTABLE = 0
+; 8 bytes plus the lookup table (8 bytes).
 	mov		bx, dx
 	mov		dl, [cs:bx+g_rgbSwapA0andA3fromIdeRegisterIndex]
 	SKIP2B	bx	; Skip eSHL_IM dx, 1
+%elif NOSWAPA0A3LOOKUPTABLE = 1
+; 9 bytes. No lookup table.
+	test	dl, 1
+	jz		SHORT OutputALtoRegisterInDX
+	xor		dl, 1001b						; Set A3, Clear A0
+	SKIP2B	bx	; Skip eSHL_IM dx, 1
+%else
+; 7 bytes. No lookup table.
+	shr		dx, 1
+	jnc		SHORT .ShlRegisterIndexInDXandOutputAL
+	or		dx, 4
+%endif
 
 .ShlRegisterIndexInDXandOutputAL:
 	eSHL_IM	dx, 1
@@ -195,7 +227,7 @@ OutputALtoRegisterInDX:
 	ret
 
 
-
+%if NOSWAPA0A3LOOKUPTABLE = 0
 ; A0 <-> A3 lookup table
 g_rgbSwapA0andA3fromIdeRegisterIndex:
 	db	0000b	; <-> 0000b, 0
@@ -206,5 +238,8 @@ g_rgbSwapA0andA3fromIdeRegisterIndex:
 	db	1100b	; <-> 0101b, 5
 	db	0110b	; <-> 0110b, 6
 	db	1110b	; <-> 0111b, 7
+%endif
+
+%undef NOSWAPA0A3LOOKUPTABLE
 
 %endif ; MODULE_8BIT_IDE

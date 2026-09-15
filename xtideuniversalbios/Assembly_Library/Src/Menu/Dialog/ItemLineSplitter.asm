@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -43,14 +43,15 @@ ItemLineSplitter_GetLinesToAXforStringInDSSI:
 	call	MenuLocation_GetMaxTextLineLengthToAX
 	eENTER_STRUCT	ITEM_LINE_SPLITTER_size
 	mov		[bp+ITEM_LINE_SPLITTER.wMaxTextLineLength], ax
-	mov		WORD [bp+ITEM_LINE_SPLITTER.wLineToFind], -1
+	mov		WORD [bp+ITEM_LINE_SPLITTER.wLineToFind], -1	; OR would be one byte less but possibly slower
 
 	xor		bx, bx		; Line index
 	mov		di, si		; Start of first word
 	mov		dx, ProcessCharacterFromStringToSplit
 	call	StringProcess_DSSIwithFunctionInDX
 
-	lea		ax, [bx+1]
+	xchg	bx, ax
+	inc		ax
 	eLEAVE_STRUCT	ITEM_LINE_SPLITTER_size
 	pop		di
 	ret
@@ -118,35 +119,34 @@ ALIGN JUMP_ALIGN
 ALIGN JUMP_ALIGN
 ProcessCharacterFromStringToSplit:
 	cmp		al, ' '
-	ja		SHORT .CheckLineLength
-	mov		di, si				; DS:DI now points start of new word
-	je		SHORT .CheckLineLength
+	jbe		SHORT .ControlCharacterOrSpace
 
-	cmp		al, LF
-	je		SHORT .ChangeToNextLine
-	cmp		al, CR
-	jne		SHORT .IgnoreUnsupportedControlCharacter
-	xor		cx, cx				; Carriage return so reset line length so far
-
-ALIGN JUMP_ALIGN
 .CheckLineLength:
 	cmp		[bp+ITEM_LINE_SPLITTER.wMaxTextLineLength], cx
 	jb		SHORT .ChangeToNextLine
-	ret		; With CF cleared
+	ret								; With CF cleared
 
 ALIGN JUMP_ALIGN
 .ChangeToNextLine:
 	cmp		bx, [bp+ITEM_LINE_SPLITTER.wLineToFind]
 	je		SHORT .WantedLineFound
 
-	inc		bx					; Increment line
-	xor		cx, cx				; Zero character counter (and clear CF)
-	mov		si, di				; Start from complete word
+	inc		bx						; Increment line
+	mov		si, di					; Start from complete word
 	mov		[bp+ITEM_LINE_SPLITTER.wStartOfLine], di
+.CarriageReturn:
+	xor		cx, cx					; Zero character counter (and clear CF)
 	ret
 
 ALIGN JUMP_ALIGN
-.IgnoreUnsupportedControlCharacter:
+.ControlCharacterOrSpace:
+	mov		di, si					; DS:DI now points start of new word
+	je		SHORT .CheckLineLength	; Jump if space
+	cmp		al, LF
+	je		SHORT .ChangeToNextLine
+	cmp		al, CR
+	je		SHORT .CarriageReturn	; Reset line length
+	; Unsupported control character - ignore it
 	dec		cx
 	clc
 	ret

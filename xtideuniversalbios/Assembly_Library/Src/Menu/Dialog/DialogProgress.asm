@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -91,21 +91,6 @@ ProgressEventHandler:
 
 
 ALIGN JUMP_ALIGN
-.InitializeMenuinitFromDSSI:
-	mov		ax, NO_ITEM_HIGHLIGHTED
-	call	Dialog_EventInitializeMenuinitFromDSSIforSingleItemWithHighlightedItemInAX
-	lds		si, [bp+DIALOG.fpDialogIO]
-	call	TimerTicks_ReadFromBdaToAX
-	mov		[si+PROGRESS_DIALOG_IO.wStartTimeTicks], ax
-
-	; 0 = 65536 but it needs to be adjusted to 65535 to prevent division by zero
-	cmp		WORD [si+PROGRESS_DIALOG_IO.wMaxProgressValue], BYTE 0
-	jne		SHORT CalculateProgressNeededBeforeUpdatingCharacter
-	dec		WORD [si+PROGRESS_DIALOG_IO.wMaxProgressValue]
-	jmp		SHORT CalculateProgressNeededBeforeUpdatingCharacter
-
-
-ALIGN JUMP_ALIGN
 .IdleProcessing:
 	call	MenuInit_GetUserDataToDSSI
 	les		di, [bp+DIALOG.fpDialogIO]
@@ -152,6 +137,20 @@ istruc MENUEVENT
 iend
 
 
+ALIGN JUMP_ALIGN
+.InitializeMenuinitFromDSSI:
+	mov		ax, NO_ITEM_HIGHLIGHTED
+	call	Dialog_EventInitializeMenuinitFromDSSIforSingleItemWithHighlightedItemInAX
+	lds		si, [bp+DIALOG.fpDialogIO]
+	call	TimerTicks_ReadFromBdaToAX
+	mov		[si+PROGRESS_DIALOG_IO.wStartTimeTicks], ax
+
+	; 0 = 65536 but it needs to be adjusted to 65535 to prevent division by zero
+	cmp		WORD [si+PROGRESS_DIALOG_IO.wMaxProgressValue], BYTE 0
+	jne		SHORT CalculateProgressNeededBeforeUpdatingCharacter
+	dec		WORD [si+PROGRESS_DIALOG_IO.wMaxProgressValue]
+	; Fall to CalculateProgressNeededBeforeUpdatingCharacter
+
 ;--------------------------------------------------------------------
 ; CalculateProgressNeededBeforeUpdatingCharacter
 ;	Parameters:
@@ -162,7 +161,6 @@ iend
 ;	Corrupts:
 ;		AX, BX, DX, SI, DS
 ;--------------------------------------------------------------------
-ALIGN JUMP_ALIGN
 CalculateProgressNeededBeforeUpdatingCharacter:
 	call	MenuLocation_GetMaxTextLineLengthToAX
 	call	GetProgressLengthToBXfromProgressDialogIoInDSSI
@@ -215,7 +213,6 @@ DrawProgressBarFromDialogIoInDSSI:
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 .RepeatProgressCharacterCXtimesFromAL:
-	jcxz	NothingToRepeat
 	JMP_DISPLAY_LIBRARY PrintRepeatedCharacterFromALwithCountInCX
 
 
@@ -232,7 +229,6 @@ ALIGN JUMP_ALIGN
 GetProgressLengthToBXfromProgressDialogIoInDSSI:
 	mov		bx, [si+PROGRESS_DIALOG_IO.wMaxProgressValue]
 	sub		bx, [si+PROGRESS_DIALOG_IO.wMinProgressValue]
-NothingToRepeat:
 	ret
 
 

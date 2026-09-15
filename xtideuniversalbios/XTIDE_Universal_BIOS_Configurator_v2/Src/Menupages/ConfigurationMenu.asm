@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ g_MenupageForConfigurationMenu:
 istruc MENUPAGE
 	at	MENUPAGE.fnEnter,			dw	ConfigurationMenu_EnterMenuOrModifyItemVisibility
 	at	MENUPAGE.fnBack,			dw	MainMenu_EnterMenuOrModifyItemVisibility
-	at	MENUPAGE.wMenuitems,		dw	11
+	at	MENUPAGE.wMenuitems,		dw	12
 iend
 
 g_MenuitemConfigurationBackToMainMenu:
@@ -112,6 +112,24 @@ istruc MENUITEM
 	at	MENUITEM.itemValue + ITEM_VALUE.szMultichoice,				dw	g_szMultichoiceBooleanFlag
 	at	MENUITEM.itemValue + ITEM_VALUE.rgszValueToStringLookup,	dw	g_rgszValueToStringLookupForFlagBooleans
 	at	MENUITEM.itemValue + ITEM_VALUE.wValueBitmask,				dw	FLG_ROMVARS_FULLMODE
+	at	MENUITEM.itemValue + ITEM_VALUE.fnValueWriter,				dw	WriteFullOperatingMode
+iend
+
+g_MenuitemConfigurationRamVars:
+istruc MENUITEM
+	at	MENUITEM.fnActivate,		dw	Menuitem_ActivateHexInputForMenuitemInDSSI
+	at	MENUITEM.fnFormatValue,		dw	MenuitemPrint_WriteHexValueStringToBufferInESDIfromItemInDSSI
+	at	MENUITEM.szName,			dw	g_szItemCfgRamVars
+	at	MENUITEM.szQuickInfo,		dw	g_szNfoCfgRamVars
+	at	MENUITEM.szHelp,			dw	g_szHelpCfgRamVars
+	at	MENUITEM.bFlags,			db	FLG_MENUITEM_MODIFY_MENU
+	at	MENUITEM.bType,				db	TYPE_MENUITEM_HEX
+	at	MENUITEM.itemValue + ITEM_VALUE.wRomvarsValueOffset,		dw	ROMVARS.wRamVars
+	at	MENUITEM.itemValue + ITEM_VALUE.szDialogTitle,				dw	g_szDlgCfgRamVars
+	at	MENUITEM.itemValue + ITEM_VALUE.wMinValue,					dw	0A000h
+	at	MENUITEM.itemValue + ITEM_VALUE.wMaxValue,					dw	0FFFFh	; Disables use of UMB
+	at	MENUITEM.itemValue + ITEM_VALUE.fnValueReader,				dw	ReadRamVars
+	at	MENUITEM.itemValue + ITEM_VALUE.fnValueWriter,				dw	WriteRamVars
 iend
 
 g_MenuitemConfigurationKiBtoStealFromRAM:
@@ -121,7 +139,7 @@ istruc MENUITEM
 	at	MENUITEM.szName,			dw	g_szItemCfgStealSize
 	at	MENUITEM.szQuickInfo,		dw	g_szNfoCfgStealSize
 	at	MENUITEM.szHelp,			dw	g_szHelpCfgStealSize
-	at	MENUITEM.bFlags,			db	FLG_MENUITEM_VISIBLE | FLG_MENUITEM_BYTEVALUE
+	at	MENUITEM.bFlags,			db	FLG_MENUITEM_BYTEVALUE
 	at	MENUITEM.bType,				db	TYPE_MENUITEM_UNSIGNED
 	at	MENUITEM.itemValue + ITEM_VALUE.wRomvarsValueOffset,		dw	ROMVARS.bStealSize
 	at	MENUITEM.itemValue + ITEM_VALUE.szDialogTitle,				dw	g_szDlgCfgStealSize
@@ -198,6 +216,8 @@ ConfigurationMenu_EnterMenuOrModifyItemVisibility:
 	call	.DisableAllIdeControllerMenuitems
 	call	.EnableIdeControllerMenuitemsBasedOnConfiguration
 	call	.EnableOrDisableOperatingModeSelection
+	call	Buffers_GetRomvarsFlagsToAX
+	call	.EnableOrDisableRamVarsSegmentSelection
 	call	.EnableOrDisableKiBtoStealFromRAM
 	call	.EnableOrDisableIdleTimeout
 	call	LimitIdeControllersForLiteMode
@@ -250,8 +270,26 @@ ALIGN JUMP_ALIGN
 .EnableOrDisableOperatingModeSelection:
 	mov		bx, g_MenuitemConfigurationFullOperatingMode
 	call	Buffers_IsXTbuildLoaded
-	je		SHORT .EnableMenuitemFromCSBX
+	jz		SHORT .EnableMenuitemFromCSBX
 	jmp		SHORT .DisableMenuitemFromCSBX
+
+
+;--------------------------------------------------------------------
+; .EnableOrDisableRamVarsSegmentSelection
+;	Parameters:
+;		AX:		ROMVARS.wFlags
+;		SS:BP:	Menu handle
+;	Returns:
+;		Nothing
+;	Corrupts registers:
+;		BX
+;--------------------------------------------------------------------
+ALIGN JUMP_ALIGN
+.EnableOrDisableRamVarsSegmentSelection:
+	mov		bx, g_MenuitemConfigurationRamVars
+	test	al, FLG_ROMVARS_FULLMODE
+	jz		SHORT .DisableMenuitemFromCSBX
+	jmp		SHORT .EnableMenuitemFromCSBX
 
 
 ;--------------------------------------------------------------------
@@ -261,29 +299,28 @@ ALIGN JUMP_ALIGN
 ;	Returns:
 ;		Nothing
 ;	Corrupts registers:
-;		AX, BX
+;		BX
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 .EnableOrDisableKiBtoStealFromRAM:
-	call	Buffers_GetRomvarsFlagsToAX
 	mov		bx, g_MenuitemConfigurationKiBtoStealFromRAM
-	test	al, FLG_ROMVARS_FULLMODE
-	jz		SHORT .DisableMenuitemFromCSBX
+	cmp		WORD [es:ROMVARS.wRamVars], 0
+	jne		SHORT .DisableMenuitemFromCSBX
 	jmp		SHORT .EnableMenuitemFromCSBX
 
 
 ;--------------------------------------------------------------------
 ; .EnableOrDisableIdleTimeout
 ;	Parameters:
+;		AX:		ROMVARS.wFlags
 ;		SS:BP:	Menu handle
 ;	Returns:
 ;		Nothing
 ;	Corrupts registers:
-;		AX, BX
+;		BX
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 .EnableOrDisableIdleTimeout:
-	call	Buffers_GetRomvarsFlagsToAX
 	mov		bx, g_MenuitemConfigurationIdleTimeout
 	test	al, FLG_ROMVARS_MODULE_POWER_MANAGEMENT
 	jz		SHORT .DisableMenuitemFromCSBX
@@ -307,6 +344,80 @@ ALIGN JUMP_ALIGN
 ALIGN JUMP_ALIGN
 .DisableMenuitemFromCSBX:
 	jmp		DisableMenuitemFromCSBX
+
+
+;--------------------------------------------------------------------
+; WriteFullOperatingMode
+;	Parameters:
+;		AX:		Value that the MENUITEM system was interacting with
+;		ES:DI:	ROMVARS location where the value is to be stored
+;		DS:SI:	MENUITEM pointer
+;	Returns:
+;		AX:		Value to actually write to ROMVARS
+;	Corrupts registers:
+;		BX
+;--------------------------------------------------------------------
+ALIGN JUMP_ALIGN
+WriteFullOperatingMode:
+	test	ax, ax								; FOM disabled?
+	mov		bx, LITE_MODE_RAMVARS_SEGMENT
+	jz		SHORT .WriteDefaultValueToRamVars	; Yes, Lite mode it is
+	xor		bx, bx								; No, use Conventional memory
+.WriteDefaultValueToRamVars:
+	mov		[es:ROMVARS.wRamVars], bx
+	ret
+
+
+;--------------------------------------------------------------------
+; ReadRamVars
+;	Parameters:
+;		AX:		Value read from the ROMVARS location
+;		ES:DI:	ROMVARS location where the value was just read from
+;		DS:SI:	MENUITEM pointer
+;	Returns:
+;		AX:		Value that the MENUITEM system will interact with and display
+;	Corrupts registers:
+;		Nothing
+;--------------------------------------------------------------------
+ALIGN JUMP_ALIGN
+ReadRamVars:
+	test	ax, ax
+	jz		SHORT .PrintNoInsteadOfValue
+	cmp		ax, LITE_MODE_RAMVARS_SEGMENT
+	jne		SHORT WriteRamVars.Return
+
+.PrintNoInsteadOfValue:
+	push	si
+	mov		si, g_szNo
+	CALL_DISPLAY_LIBRARY PrintNullTerminatedStringFromCSSI
+	pop		si
+; This is a humongous hack. The menu system should not be (ab)used like this.
+	pop		ax		; Return from ReadRamVars to Menuitem_GetValueToAXfromMenuitemInDSSI
+	pop		bx		; Restore registers
+	pop		di
+	pop		es
+	pop		ax		; Return from Menuitem_GetValueToAXfromMenuitemInDSSI to MenuitemPrint_WriteHexValueStringToBufferInESDIfromItemInDSSI
+	jmp		MenuitemPrint_FinishPrintingUnsignedOrHexValue
+
+
+;--------------------------------------------------------------------
+; WriteRamVars
+;	Parameters:
+;		AX:		Value that the MENUITEM system was interacting with
+;		ES:DI:	ROMVARS location where the value is to be stored
+;		DS:SI:	MENUITEM pointer
+;	Returns:
+;		AX:		Value to actually write to ROMVARS
+;	Corrupts registers:
+;		Nothing
+;--------------------------------------------------------------------
+ALIGN JUMP_ALIGN
+WriteRamVars:
+	inc		ax		; FFFF -> 0000 = Disable UMB usage
+	jz		SHORT .Return
+	dec		ax
+.Return:
+	ret
 
 
 ;--------------------------------------------------------------------

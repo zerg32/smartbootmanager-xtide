@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ Device_FinalizeDPT:
 %ifdef USE_386
 	jne		IdeDPT_Finalize
 	jmp		SerialDPT_Finalize
-%else
+%else ; ~USE_386
 	je		SHORT .FinalizeDptForSerialPortDevice
 	jmp		IdeDPT_Finalize
 .FinalizeDptForSerialPortDevice:
@@ -99,22 +99,21 @@ Device_ResetMasterAndSlaveController:
 ;	Corrupts registers:
 ;		AL, BX, CX, DX, SI, DI, ES
 ;--------------------------------------------------------------------
-Device_IdentifyToBufferInESSIwithDriveSelectByteInBH:
 %ifndef NO_ATAID_CORRECTION
+Device_IdentifyToBufferInESSIwithDriveSelectByteInBH:
 	cmp		cx, XUB_INT13h_SIGNATURE
 	je		SHORT .DoNotFixAtaInformation
 	push	es
 	push	si
 	ePUSH_T	cx, AtaID_PopESSIandFixIllegalValuesFromESSI	; Here we modify ATA information if necessary
 .DoNotFixAtaInformation:
-%endif
 
 %ifdef MODULE_SERIAL	; IDE + Serial
 	cmp		BYTE [cs:bp+IDEVARS.bDevice], DEVICE_SERIAL_PORT
 %ifdef USE_386
 	jne		IdeCommand_IdentifyDeviceToBufferInESSIwithDriveSelectByteInBH
 	jmp		SerialCommand_IdentifyDeviceToBufferInESSIwithDriveSelectByteInBH
-%else
+%else ; ~USE_386
 	je		SHORT .IdentifyDriveFromSerialPort
 	jmp		IdeCommand_IdentifyDeviceToBufferInESSIwithDriveSelectByteInBH
 .IdentifyDriveFromSerialPort:
@@ -124,6 +123,24 @@ Device_IdentifyToBufferInESSIwithDriveSelectByteInBH:
 %else					; IDE
 	jmp		IdeCommand_IdentifyDeviceToBufferInESSIwithDriveSelectByteInBH
 %endif
+
+%else ; NO_ATAID_CORRECTION
+%ifdef MODULE_SERIAL	; IDE + Serial
+	cmp		BYTE [cs:bp+IDEVARS.bDevice], DEVICE_SERIAL_PORT
+%ifdef USE_386
+	jne		IdeCommand_IdentifyDeviceToBufferInESSIwithDriveSelectByteInBH
+	jmp		SerialCommand_IdentifyDeviceToBufferInESSIwithDriveSelectByteInBH
+%else ; ~USE_386
+	je		SHORT .IdentifyDriveFromSerialPort
+	jmp		IdeCommand_IdentifyDeviceToBufferInESSIwithDriveSelectByteInBH
+.IdentifyDriveFromSerialPort:
+	jmp		SerialCommand_IdentifyDeviceToBufferInESSIwithDriveSelectByteInBH
+%endif
+
+%else					; IDE
+	Device_IdentifyToBufferInESSIwithDriveSelectByteInBH	EQU		IdeCommand_IdentifyDeviceToBufferInESSIwithDriveSelectByteInBH
+%endif
+%endif ; NO_ATAID_CORRECTION
 
 
 ;--------------------------------------------------------------------
@@ -148,7 +165,7 @@ Device_OutputCommandWithParameters:
 %ifdef USE_386
 	jz		IdeCommand_OutputWithParameters
 	jmp		SerialCommand_OutputWithParameters
-%else
+%else ; ~USE_386
 	jnz		SHORT .OutputCommandToSerialPort
 	jmp		IdeCommand_OutputWithParameters
 
@@ -164,15 +181,17 @@ ALIGN JUMP_ALIGN
 
 ;--------------------------------------------------------------------
 ; Device_ReadLBAlowRegisterToAL
+;
 ; Returns LBA low register / Sector number register contents.
 ; Note that this returns valid value only after transfer command (read/write/verify)
 ; has stopped to an error. Do not call this otherwise.
+;
 ;	Parameters:
 ;		DS:DI:	Ptr to DPT (in RAMVARS segment)
 ;	Returns:
 ;		AL:		Byte read from the device register
 ;	Corrupts registers:
-;		BX, DX
+;		BX, DX (only DX if MODULE_ATAPI is included)
 ;--------------------------------------------------------------------
 ;%ifdef MODULE_SERIAL	; IDE + Serial
 ;ALIGN JUMP_ALIGN
@@ -181,7 +200,7 @@ ALIGN JUMP_ALIGN
 ;%ifdef USE_386
 ;	jz		IdeCommand_ReadLBAlowRegisterToAL
 ;	jmp		SerialCommand_ReadLBAlowRegisterToAL
-;%else
+;%else ; ~USE_386
 ;	jnz		SHORT .ReadFromSerialPort
 ;	jmp		IdeCommand_ReadLBAlowRegisterToAL
 
@@ -213,7 +232,7 @@ Device_SelectDrive:
 %ifndef USE_386
 	jnz		SHORT ReturnSuccessForSerialPort
 	jmp		IdeCommand_SelectDrive
-%else
+%else ; USE_386
 	jz		IdeCommand_SelectDrive
 	; Fall to ReturnSuccessForSerialPort
 %endif
@@ -224,7 +243,6 @@ Device_SelectDrive:
 
 
 %ifdef MODULE_SERIAL
-ALIGN JUMP_ALIGN
 ReturnSuccessForSerialPort:
 	xor		ax, ax
 	ret

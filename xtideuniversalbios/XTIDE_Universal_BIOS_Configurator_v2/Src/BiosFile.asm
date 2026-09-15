@@ -32,60 +32,41 @@ SECTION .text
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 BiosFile_LoadFileFromDSSItoRamBuffer:
-	push	ds
-
-	call	.OpenFileForLoadingFromDSSIandGetSizeToDXCX
-	jc		SHORT .DisplayErrorMessage
-	call	.LoadFileWithNameInDSSIhandleInBXandSizeInDXCXtoRamBuffer
-	jc		SHORT .DisplayErrorMessage
-
-	mov		al, FLG_CFGVARS_FILELOADED
-	call	Buffers_NewBiosWithSizeInDXCXandSourceInALhasBeenLoadedForConfiguration
-	call	FileIO_CloseUsingHandleFromBX
-	call	DisplayFileLoadedSuccessfully
-	pop		ds
-	ret
-
-.DisplayErrorMessage:
-	call	FileIO_CloseUsingHandleFromBX
-	call	DisplayFailedToLoadFile
-	pop		ds
-	ret
-
-;--------------------------------------------------------------------
-; .OpenFileForLoadingFromDSSIandGetSizeInBytesToDXCX
-;	Parameters:
-;		DS:SI:	Name of file to open
-;	Returns:
-;		BX:		File handle (if successful)
-;		DX:CX:	File size (if successful)
-;		CF:		Clear if successful
-;				Set if error
-;	Corrupts registers:
-;		AX
-;--------------------------------------------------------------------
-ALIGN JUMP_ALIGN
-.OpenFileForLoadingFromDSSIandGetSizeToDXCX:
 	mov		al, FILE_ACCESS.ReadOnly
 	call	FileIO_OpenWithPathInDSSIandFileAccessInAL
-	jc		SHORT .FileError
+	jc		SHORT .DisplayErrorMessage
+
 	call	FileIO_GetFileSizeToDXAXusingHandleFromBXandResetFilePosition
-	jc		SHORT .FileError
+	jc		SHORT .CloseUsingHandleFromBXandDisplayErrorMessage
 
 	cmp		dx, MAX_EEPROM_SIZE_IN_BYTES >> 16
 	jb		SHORT .FileNotTooBig
 	ja		SHORT .FileTooBig
+%if (MAX_EEPROM_SIZE_IN_BYTES & 0FFFFh) = 0
+	test	ax, ax
+	jnz		SHORT .FileTooBig
+%else
 	cmp		ax, MAX_EEPROM_SIZE_IN_BYTES & 0FFFFh
 	ja		SHORT .FileTooBig
+%endif
 .FileNotTooBig:
 	xchg	cx, ax
-	clc
-	ret
+
+	call	.LoadFileWithNameInDSSIhandleInBXandSizeInDXCXtoRamBuffer
+	jc		SHORT .CloseUsingHandleFromBXandDisplayErrorMessage
+
+	mov		al, FLG_CFGVARS_FILELOADED
+	call	Buffers_NewBiosWithSizeInDXCXandSourceInALhasBeenLoadedForConfiguration
+	call	FileIO_CloseUsingHandleFromBX
+	jmp		SHORT DisplayFileLoadedSuccessfully
+
 .FileTooBig:
 	call	DisplayFileTooBig
-	stc
-.FileError:
-	ret
+.CloseUsingHandleFromBXandDisplayErrorMessage:
+	call	FileIO_CloseUsingHandleFromBX
+.DisplayErrorMessage:
+	jmp		SHORT DisplayFailedToLoadFile
+
 
 ;--------------------------------------------------------------------
 ; .LoadFileWithNameInDSSIhandleInBXandSizeInDXCXtoRamBuffer
@@ -111,15 +92,14 @@ ALIGN JUMP_ALIGN
 	; Store filename to Cfgvars from ESDI
 	push	cx
 
-	call	Registers_CopyESDItoDSSI	; File name in DS:SI
+	call	Registers_CopyESDItoDSSI				; File name in DS:SI
 	push	cs
 	pop		es
 	mov		di, g_cfgVars+CFGVARS.szOpenedFile
 %ifdef CLD_NEEDED
 	cld
 %endif
-	call	String_CopyDSSItoESDIandGetLengthToCX
-	clc
+	call	String_CopyDSSItoESDIandGetLengthToCX	; Returns with CF cleared
 
 	pop		cx
 ALIGN JUMP_ALIGN
@@ -163,7 +143,6 @@ BiosFile_SaveUnsavedChanges:
 ALIGN JUMP_ALIGN
 BiosFile_SaveRamBufferToFileInDSSI:
 	push	es
-	push	ds
 
 	call	Buffers_GenerateChecksum
 	call	Buffers_GetFileBufferToESDI
@@ -173,23 +152,22 @@ BiosFile_SaveRamBufferToFileInDSSI:
 	call	FileIO_OpenWithPathInDSSIandFileAccessInAL
 	jc		SHORT .DisplayErrorMessage
 
+	push	ds
 	call	Registers_CopyESDItoDSSI
 	call	FileIO_WriteDXCXbytesFromDSSIusingHandleFromBX
+	pop		ds
+	pushf
+	call	FileIO_CloseUsingHandleFromBX
+	popf
 	jc		SHORT .DisplayErrorMessage
 
-	call	FileIO_CloseUsingHandleFromBX
 	call	Buffers_ClearUnsavedChanges
-	call	DisplayFileSavedSuccessfully
-	jmp		SHORT .Return
+	pop		es
+	jmp		SHORT DisplayFileSavedSuccessfully
 
 .DisplayErrorMessage:
-	call	FileIO_CloseUsingHandleFromBX
-	call	DisplayFailedToSaveFile
-ALIGN JUMP_ALIGN
-.Return:
-	pop		ds
 	pop		es
-	ret
+	jmp		SHORT DisplayFailedToSaveFile
 
 
 ;--------------------------------------------------------------------

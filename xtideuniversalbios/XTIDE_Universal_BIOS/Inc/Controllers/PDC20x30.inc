@@ -21,13 +21,26 @@
 %ifndef PDC20x30_INC
 %define PDC20x30_INC
 
+; 
 
-; SECTOR_COUNT_REGISTER in programming mode
-FLG_PDCSCR_UNKNOWN_BIT7		EQU		(1<<7)	; Set to 1 for speed setting 7 of device 0 or 1
-FLG_PDCSCR_ID3				EQU		(1<<6)	; VLB bus speed: 0 > 33 MHz, 1 <= 33 MHz
-POS_PDCSCR_DEV0SPEED		EQU		3
-MASK_PDCSCR_DEV0SPEED		EQU		(7<<POS_PDCSCR_DEV0SPEED)	; 0 to 7
-MASK_PDCSCR_DEV1SPEED		EQU		(7<<0)						; 0 to 7
+; SECTOR_COUNT_REGISTER (1F2) in programming mode
+FLG_PDCSCR_BOTHMAX			EQU		(1<<6)	; Master and Slave at maximum speed
+
+; SECTOR_NUMBER_REGISTER (1F3) in programming mode
+FLG_PDCSNR_UNKNOWN_BIT7		EQU		(1<<7)	; Set to 1 for speed setting 7 of device 0 or 1
+FLG_PDCSNR_ID3				EQU		(1<<6)	; VLB bus speed: 0 > 33 MHz, 1 <= 33 MHz
+POS_PDCSNR_DEV0SPEED		EQU		3
+MASK_PDCSNR_DEV0SPEED		EQU		(7<<POS_PDCSNR_DEV0SPEED)	; 0 to 7
+MASK_PDCSNR_DEV1SPEED		EQU		(7<<0)						; 0 to 7
+
+; Disassembly of VG4.BIN: (might have errors)
+; FLG_PDCSNR_UNKNOWN_BIT7 will be set if no dev1, no matter what speed 
+; FLG_PDCSNR_UNKNOWN_BIT7 will be cleared if dev1 found but no master
+; FLG_PDCSNR_UNKNOWN_BIT7 will be cleared if dev0 and dev1 speeds are both 7 !
+; FLG_PDCSNR_UNKNOWN_BIT7 will be cleared if dev 1 is 7 !
+; If dev 1 is 6 or less and dev 0 is 7, then dev0-- and set FLG_PDCSCR_UNKNOWN_BIT7
+; 
+
 
 
 ; LOW_CYLINDER_REGISTER in programming mode
@@ -35,7 +48,7 @@ MASK_PDCSCR_DEV1SPEED		EQU		(7<<0)						; 0 to 7
 FLG_PDCLCR_DEV0SPEED_BIT4	EQU		(1<<7)	; Possibly speed bit 4 (speed settings 8 to 15)?
 FLG_PDCLCR_DEV1SPEED_BIT4	EQU		(1<<6)	; Same as above but for device 1
 FLG_PDCLCR_DEV0IORDY		EQU		(1<<5)	; Not sure about this
-FLG_PDCLCR_DEV1IORDY		EQU		(1<<4)	; Same as above but for device 15
+FLG_PDCLCR_DEV1IORDY		EQU		(1<<4)	; Same as above but for device 1
 FLG_PDCLCR_ENABLE_EXTRA_REGISTERS	EQU	(1<<3)
 
 

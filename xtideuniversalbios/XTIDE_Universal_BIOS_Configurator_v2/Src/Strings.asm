@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -24,7 +24,9 @@ SECTION .data
 g_s$NotMinimumDosVersion:			db	LF,"This program requires DOS version 2 or higher.",LF,"$"
 
 ; Menu title
-g_szProgramTitle:					db	"Configuration and Flashing program for XTIDE Universal BIOS v2.0.0.",LF,CR,NULL
+g_szProgramTitle:					db	"Configuration and Flashing program for XTIDE Universal BIOS r"
+									db	ROM_VERSION_STRING
+									db	LF,CR,NULL
 g_sXtideUniversalBiosSignature:		db	FLASH_SIGNATURE		; No need to terminate with NULL.
 g_szBiosIsNotLoaded:				db	"BIOS is not loaded!",NULL
 g_szEEPROM:							db	"EEPROM",NULL
@@ -42,120 +44,144 @@ g_szMultichoiceBooleanFlag:			db	"No",LF
 g_szYes:							db	"Yes",NULL
 
 ; General Yes/No response type dialog messages
-g_szDlgExitToDos:		db	"Exit to DOS?",NULL
-g_szDlgSaveChanges:		db	"Do you want to save changes to XTIDE Universal BIOS image file?",NULL
-g_szDlgDriveNotReady:	db	"Drive not ready! Retry?",NULL
+g_szDlgExitToDos:			db	"Exit to DOS?",NULL
+g_szDlgSaveChanges:			db	"Do you want to save changes to XTIDE Universal BIOS image file?",NULL
+g_szDlgDriveNotReady:		db	"Drive not ready! Retry?",NULL
 
 ; Generic dialog strings
-g_szNotificationDialog:	db	"Notification.",NULL
-g_szErrorDialog:		db	"Error!",NULL
-g_szGenericDialogInfo:	db	"Press ENTER or ESC to close dialog.",NULL
+g_szNotificationDialog:		db	"Notification.",NULL
+g_szErrorDialog:			db	"Error!",NULL
+g_szGenericDialogInfo:		db	"Press ENTER or ESC to close dialog.",NULL
 
 ; Flashing related strings
-g_szFlashTitle:			db	"Flashing EEPROM, please wait.",NULL
-g_szErrEepromTooSmall:	db	"Image is too large for selected EEPROM type!",NULL
-g_szErrEepromPolling:	db	"Timeout when polling EEPROM.",LF
-						db	"EEPROM was not flashed properly!",NULL
-g_szErrEepromVerify:	db	"EEPROM did not return the same byte that was written.",LF
-						db	"EEPROM was not flashed properly!",NULL
-g_szPCFlashSuccessful:	db	"EEPROM was written successfully.",LF
-						db	"Press any key to reboot.",NULL
-g_szForeignFlash:		db	"EEPROM was written successfully.",NULL
+g_szFlashTitle:				db	"Flashing EEPROM, please wait.",NULL
+g_szErrEepromTooSmall:		db	"Image is too large for selected EEPROM type!",NULL
+g_szErrAddrNot32KAligned:	db	"The selected EEPROM type requires the address to be 32"
+							db	" kiB aligned (C800, D000, D800, E000, etc.)",NULL
+g_szErrEepromDetection:		db	"EEPROM of type not found.",LF
+							db	"EEPROM was not flashed properly!",NULL
+g_szErrEepromPolling:		db	"Timeout when polling EEPROM.",LF
+							db	"EEPROM was not flashed properly!",NULL
+g_szErrEepromVerify:		db	"EEPROM did not return the same byte that was written.",LF
+							db	"EEPROM was not flashed properly!",NULL
+g_szPCFlashSuccessful:		db	"EEPROM was written successfully.",LF
+							db	"Close dialog to reboot.",NULL
+g_szForeignFlash:			db	"EEPROM was written successfully.",NULL
 
 
 ; Strings for main menu
-g_szItemMainExitToDOS:	db	"Exit to DOS",NULL
-g_szItemMainLoadFile:	db	"Load BIOS from file",NULL
-g_szItemMainLoadROM:	db	"Load BIOS from EEPROM",NULL
-g_szItemMainLoadStngs:	db	"Load old settings from EEPROM",NULL
-g_szItemMainConfigure:	db	"Configure XTIDE Universal BIOS",NULL
-g_szItemMainFlash:		db	"Flash EEPROM",NULL
-g_szItemMainSave:		db	"Save BIOS back to original file",NULL
-g_szItemMainLicense:	db	"Copyright and License Information",NULL
-g_szItemMainHomePage:	db	"Web Links",NULL
+g_szItemMainExitToDOS:		db	"Exit to DOS",NULL
+g_szItemMainLoadFile:		db	"Load BIOS from file",NULL
+g_szItemMainLoadROM:		db	"Load BIOS from EEPROM",NULL
+g_szItemMainLoadStngs:		db	"Load old settings from EEPROM",NULL
+g_szItemMainConfigure:		db	"Configure XTIDE Universal BIOS",NULL
+g_szItemMainFlash:			db	"Flash EEPROM",NULL
+g_szItemMainSave:			db	"Save BIOS back to original file",NULL
+g_szItemMainLicense:		db	"Copyright and License Information",NULL
+g_szItemMainHomePage:		db	"Web Links",NULL
 
-g_szDlgMainLoadROM:		db	"Successfully loaded XTIDE Universal BIOS from EEPROM.",NULL
-g_szDlgMainLoadStngs:	db	"Successfully loaded settings from EEPROM.",NULL
-g_szDlgMainLoadFile:	db	"Successfully loaded file for flashing.",NULL
-g_szDlgMainSaveFile:	db	"Successfully saved XTIDE Universal BIOS to file.",NULL
-g_szDlgMainFileTooBig:	db	"Selected file is too big to be loaded for flashing!",NULL
-g_szDlgMainLoadErr:		db	"Failed to load file!",NULL
-g_szDlgMainSaveErr:		db	"Failed to save file!",NULL
-g_szDlgFileTitle:		db	"Select file to be flashed.",NULL
-g_szDlgFileFilter:		db	"*.*",NULL
+g_szDlgMainLoadROM:			db	"Successfully loaded XTIDE Universal BIOS from EEPROM.",NULL
+g_szDlgMainLoadStngs:		db	"Successfully loaded settings from EEPROM.",NULL
+g_szDlgMainLoadFile:		db	"Successfully loaded file for flashing.",NULL
+g_szDlgMainSaveFile:		db	"Successfully saved XTIDE Universal BIOS to file.",NULL
+g_szDlgMainFileTooBig:		db	"Selected file is too big to be loaded for flashing!",NULL
+g_szDlgMainLoadErr:			db	"Failed to load file!",NULL
+g_szDlgMainSaveErr:			db	"Failed to save file!",NULL
+g_szDlgFileTitle:			db	"Select file to be flashed.",NULL
+g_szDlgFileFilter:			db	"*.*",NULL
 
-g_szNfoMainExitToDOS:	db	"Quits XTIDE Universal BIOS Configurator.",NULL
-g_szNfoMainLoadFile:	db	"Load BIOS file to be configured or flashed.",NULL
-g_szNfoMainLoadROM:		db	"Load BIOS from EEPROM to be reconfigured.",NULL
-g_szNfoMainLoadStngs:	db	"Load old XTIDE Universal BIOS settings from EEPROM.",NULL
-g_szNfoMainConfigure:	db	"Configure XTIDE Universal BIOS settings.",NULL
-g_szNfoMainFlash:		db	"Flash loaded BIOS image to EEPROM.",NULL
-g_szNfoMainSave:		db	"Save BIOS changes back to original file from which it was loaded.",NULL
-g_szNfoMainLicense:		db	"XTIDE Universal BIOS and XTIDECFG Copyright (C) 2009-2010 by Tomi Tilli, 2011-2021 by XTIDE Universal BIOS Team."
-						db	" Released under GNU GPL v2, with ABSOLUTELY NO WARRANTY. Press ENTER for more details...",NULL
-g_szNfoMainHomePage:	db	"Visit http://xtideuniversalbios.org (home page) and http://vcfed.org/forum (support)",NULL
+g_szNfoMainExitToDOS:		db	"Quits XTIDE Universal BIOS Configurator.",NULL
+g_szNfoMainLoadFile:		db	"Load BIOS file to be configured or flashed.",NULL
+g_szNfoMainLoadROM:			db	"Load BIOS from EEPROM to be reconfigured.",NULL
+g_szNfoMainLoadStngs:		db	"Load old XTIDE Universal BIOS settings from EEPROM.",NULL
+g_szNfoMainConfigure:		db	"Configure XTIDE Universal BIOS settings.",NULL
+g_szNfoMainFlash:			db	"Flash loaded BIOS image to EEPROM.",NULL
+g_szNfoMainSave:			db	"Save BIOS changes back to original file from which it was loaded.",NULL
+g_szNfoMainLicense:			db	"XTIDE Universal BIOS and XTIDECFG Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team."
+							db	" Released under GNU GPL v2, with ABSOLUTELY NO WARRANTY. Press ENTER for more details...",NULL
+g_szNfoMainHomePage:		db	"Visit http://xtideuniversalbios.org (home page) and http://forum.vcfed.org (support)",NULL
 
-g_szHelpMainLicense:	db	"XTIDE Universal BIOS and XTIDECFG Configuration program are Copyright 2009-2010 by Tomi Tilli,"
-						db	" 2011-2021 by XTIDE Universal BIOS Team. Released under GNU GPL v2. This software comes with ABSOLUTELY NO WARRANTY."
-						db	" This is free software, and you are welcome to redistribute it under certain conditions."
-						db	" See the LICENSE.TXT file that was included with this distribution,"
-						db	" visit http://www.gnu.org/licenses/ gpl-2.0.html, or visit http://xtideuniversalbios.org.",NULL
+g_szHelpMainLicense:		db	"XTIDE Universal BIOS and XTIDECFG Configuration program are Copyright 2009-2010 by Tomi Tilli,"
+							db	" 2011-2026 by XTIDE Universal BIOS Team. Released under GNU GPL v2. This software comes with ABSOLUTELY NO WARRANTY."
+							db	" This is free software, and you are welcome to redistribute it under certain conditions."
+							db	" See the LICENSE.TXT file that was included with this distribution,"
+							db	" visit http://www.gnu.org/licenses/ gpl-2.0.html, or visit http://xtideuniversalbios.org.",NULL
 
 ; Strings for XTIDE Universal BIOS configuration menu
-g_szItemCfgBackToMain:	db	"Back to Main Menu",NULL
-g_szItemCfgIde1:		db	"Primary IDE Controller",NULL
-g_szItemCfgIde2:		db	"Secondary IDE Controller",NULL
-g_szItemCfgIde3:		db	"Tertiary IDE Controller",NULL
-g_szItemCfgIde4:		db	"Quaternary IDE Controller",NULL
-g_szItemCfgBootMenu:	db	"Boot settings",NULL
-g_szItemAutoConfigure:	db	"Auto Configure",NULL
-g_szItemCfgFullMode:	db	"Full operating mode",NULL
-g_szItemCfgStealSize:	db	"kiB to steal from RAM",NULL
-g_szItemCfgIdeCnt:		db	"IDE controllers",NULL
-g_szItemCfgIdleTimeout:	db	"Power Management",NULL
+g_szItemCfgBackToMain:		db	"Back to Main Menu",NULL
+g_szItemCfgIde1:			db	"Primary IDE Controller",NULL
+g_szItemCfgIde2:			db	"Secondary IDE Controller",NULL
+g_szItemCfgIde3:			db	"Tertiary IDE Controller",NULL
+g_szItemCfgIde4:			db	"Quaternary IDE Controller",NULL
+g_szItemCfgBootMenu:		db	"Boot settings",NULL
+g_szItemAutoConfigure:		db	"Auto Configure",NULL
+g_szItemCfgFullMode:		db	"Full operating mode",NULL
+g_szItemCfgRamVars:			db	"Use UMB for variables",NULL
+g_szItemCfgStealSize:		db	"kiB to steal from RAM",NULL
+g_szItemCfgIdeCnt:			db	"IDE controllers",NULL
+g_szItemCfgIdleTimeout:		db	"Power Management",NULL
 
-g_szDlgAutoConfigure:	db	"Found "
-g_bControllersDetected:	db	'x'				; Value stored directly here
-						db	" controllers.",NULL
-g_szDlgBadBiosFound:	db	"This computer has been identified as being one of the following models:",LF,LF
-						db	"Zenith Z-171",LF
-						db	"Zenith Z-161",LF,LF
-						db	"The Boot settings menu option 'Remove other hard drives' has been set to YES for this reason.",NULL
-g_szDlgCfgFullMode:		db	"Enable full operating mode?",NULL
-g_szDlgCfgStealSize:	db	"How many kiB of base memory to steal for XTIDE Universal BIOS variables (1...255)?",NULL
-g_szDlgCfgIdeCnt:		db	"How many IDE controllers to manage (1...4)?",NULL
-g_szDlgCfgIdleTimeout:	db	"Select the amount of time before idling drives should enter standby mode.",NULL
+g_szDlgAutoConfigure:		db	"Found "
+g_bControllersDetected:		db	'x'				; Value stored directly here
+							db	" controllers.",NULL
+g_szDlgBadBiosFound:		db	"This computer has been identified as being one of the following models:",LF,LF
+							db	"Zenith Data Systems Z-171",LF
+							db	"Zenith Data Systems Z-161",LF,LF
+							db	"The Boot settings menu option 'Remove other hard drives' has been set to YES for this reason.",NULL
+g_szDlgIncompatibleBuild:	db	"This computer has been identified as being in need of having the Boot settings menu option"
+							db	" 'Remove other hard drives' set to YES. However, this is not available on the currently loaded"
+							db	" BIOS because it includes MODULE_MFM_COMPATIBILITY. As a result, this particular BIOS build"
+							db	" cannot be used with this computer.",NULL
+g_szDlgFomEnabled:			db	"The loaded file does not support Lite mode - Full operating mode has been enabled.",NULL
+g_szDlgCfgFullMode:			db	"Enable full operating mode?",NULL
+g_szDlgCfgRamVars:			db	"Store variables in UMB?",NULL
+g_szDlgCfgStealSize:		db	"How many kiB of base memory to steal for XTIDE Universal BIOS variables (1...255)?",NULL
+g_szDlgCfgIdeCnt:			db	"How many IDE controllers to manage (1...4)?",NULL
+g_szDlgCfgIdleTimeout:		db	"Select the amount of time before idling drives should enter standby mode.",NULL
 
-g_szNfoCfgIde:			db	"IDE controller and drive configuration.",NULL
-g_szNfoCfgBootMenu:		db	"Boot configuration.",NULL
-g_szNfoAutoConfigure:	db	"Automatically Configure XTIDE Universal BIOS for this system.",NULL
-g_szNfoCfgFullMode:		db	"Full mode supports multiple controllers and has more features.",NULL
-g_szNfoCfgStealSize:	db	"How many kiB's to steal from Conventional memory for XTIDE Universal BIOS variables.",NULL
-g_szNfoCfgIdeCnt:		db	"Number of IDE controllers to manage.",NULL
-g_szNfoCfgIdleTimeout:	db	"Enable Power Management to set the harddrive(s) to spin down after idling a certain amount of time.",NULL
+g_szNfoCfgIde:				db	"IDE controller and drive configuration.",NULL
+g_szNfoCfgBootMenu:			db	"Boot configuration.",NULL
+g_szNfoAutoConfigure:		db	"Automatically Configure XTIDE Universal BIOS for this system.",NULL
+g_szNfoCfgFullMode:			db	"Full mode supports up to four controllers and has more features.",NULL
+g_szNfoCfgRamVars:			db	"Enter UMB segment address (FFFF=Disable UMB usage and use the top of Conventional memory instead).",NULL
+g_szNfoCfgStealSize:		db	"How many kiB's to steal from Conventional memory for XTIDE Universal BIOS variables.",NULL
+g_szNfoCfgIdeCnt:			db	"Number of IDE controllers to manage.",NULL
+g_szNfoCfgIdleTimeout:		db	"Enable Power Management to set the harddrive(s) to spin down after idling a certain amount of time.",NULL
 
-g_szSerialMoved:		db	"A Serial Controller has been moved to the end of the Controller list."
-						db	" No further action is required. Serial Controllers must be placed at the end of the list.",NULL
+g_szSerialMoved:			db	"A Serial Controller has been moved to the end of the Controller list."
+							db	" No further action is required. Serial Controllers must be placed at the end of the list.",NULL
 
-g_szHelpCfgFullMode:	db	"Full mode supports up to 4 IDE controllers (8 drives). Full mode reserves a bit of RAM from the top of"
-						db	" Conventional memory. This makes it possible to use ROM BASIC and other software that requires"
-						db	" the interrupt vectors where XTIDE Universal BIOS parameters would be stored in Lite mode.",LF,LF
-						db	"Lite mode supports only 2 IDE controllers (4 drives) and stores parameters to the top of the interrupt vectors"
-						db	" (30:0h) so no Conventional memory needs to be reserved. Lite mode cannot be used if some software requires"
-						db	" the top of interrupt vectors. Usually this is not a problem since only IBM ROM BASIC uses them.",LF,LF
-						db	"Tandy 1000 models with 640 kiB or less memory need to use Lite mode since the top of Conventional memory gets"
-						db	" dynamically reserved by video hardware. This happens only with Tandy integrated video controller and not when"
-						db	" using expansion graphics cards. It is possible to use Full mode if reserving RAM for video memory + what is"
-						db	" required for XTIDE Universal BIOS. This would mean 65 kiB but most software should work with 33 kiB reserved.",NULL
+g_szHelpCfgFullMode:		db	"Full mode supports up to 4 IDE controllers (8 drives) and requires 1 kiB of RAM to store hard disk parameters and"
+							db	" other variables. This bit of RAM can be reserved from the top of Conventional memory, or, if RAM is available in"
+							db	" the Upper Memory Area (UMA), by configuring the BIOS to use an Upper Memory Block (UMB). Full mode makes it"
+							db	" possible to use ROM BASIC and other software that requires the memory range where"
+							db	" XTIDE Universal BIOS parameters would be stored in Lite mode.",LF,LF
+							db	"Lite mode supports only 2 IDE controllers (4 drives) and stores parameters to the top of the interrupt vectors"
+							db	" (30:0h) so no Conventional memory needs to be reserved. Lite mode cannot be used if you intend to use"
+							db	" IBM ROM BASIC or software such as Turbo BASIC or BASICA.",LF,LF
+							db	"Tandy 1000 models with 640 kiB or less memory need to use Lite mode since the top of Conventional memory gets"
+							db	" dynamically reserved by video hardware. This happens only with Tandy integrated video controller and not when"
+							db	" using expansion graphics cards. It is possible to use Full mode if configuring the BIOS to use an UMB or by"
+							db	" reserving RAM for video memory in addition to what is required for XTIDE Universal BIOS. Most software should"
+							db	" work with 33 kiB reserved but some will require 65 kiB. Theoretically speaking, a lot more could be required"
+							db	" - it is just that we are not aware of any software with higher video memory requirements.",NULL
 
-g_szHelpCfgStealSize:	db	"Parameters for detected hard disks must be stored somewhere. In Full mode they are stored at the top of Conventional"
-						db	" memory. 1 kiB is usually enough but you may have to reserve more if you want to use Full mode on a Tandy 1000.",NULL
+g_szHelpCfgRamVars:			db	"The UMB segment address entered here will be used to store hard disk parameters and other variables leaving all"
+							db	" of the Conventional memory free for other uses.",LF,LF
+							db	"Do not use this option unless you know for certain that memory actually exists at this address and that it is"
+							db	" writable without any prerequisite chipset programming. If you are using any sort of DOS memory manager or UMB"
+							db	" provider then it is probably a good idea to use whatever memory range exclusion option it provides to prevent it"
+							db	" from trying to use this memory range. Note that only 1 kiB of the UMB will be used.",NULL
 
-g_szHelpCfgIdleTimeout:	db	"This option enables the standby timer for all harddrives handled by XTIDE Universal BIOS,"
-						db	" allowing the drives to spin down after idling the selected amount of time."
-						db	" Note that this does not work with old drives that lack the Power Management feature set."
-						db	" Also note that timeouts less than 5 minutes may cause unnecessary wear on the drives and is not recommended"
-						db	" (use for compatibility testing only).",NULL
+g_szHelpCfgStealSize:		db	"Parameters for detected hard disks and other variables must be stored somewhere. If in Full mode, and the BIOS has"
+							db	" not been configured to use an UMB, then they are stored at the top of Conventional memory."
+							db	" 1 kiB is usually enough but you may have to reserve more if you want to use Full mode on a Tandy 1000.",NULL
+
+g_szHelpCfgIdleTimeout:		db	"This option enables the standby timer for all harddrives handled by XTIDE Universal BIOS,"
+							db	" allowing the drives to spin down after idling the selected amount of time."
+							db	" Note that this does not work with old drives that lack the Power Management feature set."
+							db	" Also note that timeouts less than 5 minutes may cause unnecessary wear on the drives and is not recommended"
+							db	" (use for compatibility testing only).",NULL
 
 g_szMultichoiceIdleTimeout:	db	"Disabled",LF
 							db	"1 m",LF
@@ -227,6 +253,7 @@ g_szDlgIdeCmdPort:			db	"Enter IDE command block (base port) address.",NULL
 g_szDlgIdeCtrlPort:			db	"Enter IDE control block address (usually command block + 200h).",NULL
 g_szDlgIdeEnIRQ:			db	"Enable interrupt?",NULL
 g_szDlgIdeIRQ:				db	"Enter IRQ channel (2...7 for 8-bit controllers, 2...15 for any other controller).",NULL
+g_szDlgIdeSerialPort:		db	"Enter serial port I/O address.",NULL
 g_szUnsupportedDevice:		db	"There is no support for this device type in the currently loaded BIOS."
 							db	" You must load a BIOS built with the proper module included to be able to use this type of device.",NULL
 
@@ -281,6 +308,7 @@ g_szHelpIdeSerialBaud:		db	"Supported baud rates are 2400, 4800, 9600, 19.2K, 28
 g_szMultichoiceCfgDevice:	db	"16-bit ISA/VLB/PCI IDE",LF
 							db	"32-bit VLB/PCI IDE",LF
 							db	"16-bit ISA IDE in 8-bit mode",LF
+							db	"Juko D16-X",LF
 							db	"XTIDE rev 1",LF
 							db	"XTIDE rev 2 or modded rev 1",LF
 							db	"XTIDE rev 2 (Olivetti M24)",LF
@@ -295,6 +323,7 @@ g_szMultichoiceCfgDevice:	db	"16-bit ISA/VLB/PCI IDE",LF
 g_szValueCfgDevice16b:						db	"16-bit",NULL
 g_szValueCfgDevice32b:						db	"32-bit",NULL
 g_szValueCfgDevice8b:						db	"8-bit",NULL
+g_szValueCfgDeviceJukoD16X:					db	"D16-X",NULL
 g_szValueCfgDeviceRev1:						db	"XTIDE r1",NULL
 g_szValueCfgDeviceRev2:
 g_szValueCfgDeviceRev2Olivetti:				db	"XTIDE r2",NULL
@@ -457,8 +486,7 @@ g_szNfoSerialDetect:			db	"Scans all standard COM ports for serial drives."
 g_szNfoClearBdaDriveCount:		db	"Can be used to remove duplicate hard drives.",NULL
 
 g_szHelpBootTimeout:			db	"Boot Menu selection timeout in BIOS timer ticks (1 second = 18.2 ticks)."
-								db	" When timer goes to zero, currently selected drive will be booted automatically."
-								db	" Timeout can be disabled by setting this to 0.",NULL
+								db	" When timer goes to zero, currently selected drive will be booted automatically.",NULL
 g_szHelpBootDrive:				db	"Drive to be set selected by default when Boot Menu is displayed.",NULL
 g_szHelpColorTheme:				db	"Pick a theme from a list of several pre-defined themes to customize the colors used by the boot menu and, if"
 								db	" available, the hotkey bar. Selecting a theme or loading a BIOS, or its settings, from file or from ROM will"
@@ -474,10 +502,10 @@ g_szHelpSerialDetect:			db	"Set to Yes, at the end of normal drive detection, CO
 								db	" Even when this option is set to No, this functionality can still be invoked by holding down the ALT key at the end"
 								db	" of normal drive detection. Note that if any serial drives are detected during the normal drive detection,"
 								db	" no scan will take place (to avoid finding the same drive twice).",NULL
-g_szHelpClearBdaDriveCount:		db	"Set to NO for normal operation. Set to YES to get Windows 9x protected mode drivers to work when"
-								db	" MODULE_WIN9X_CMOS_HACK is not included (dummy drive needs to be defined in system BIOS setup). This option must"
-								db	" also be set to YES on computers where the system BIOS does not initialize RAM properly. Zenith models Z-171 and"
-								db	" Z-161 are known examples of such machines.",NULL
+g_szHelpClearBdaDriveCount:		db	"Set to NO for normal operation. Set to YES to get the built-in protected mode driver in Windows 9x to work when a"
+								db	" dummy drive has been added in system BIOS setup or when using a BIOS built with MODULE_WIN9X_CMOS_HACK included."
+								db	" This option must also be set to YES on computers where the system BIOS does not initialize RAM properly."
+								db	" Zenith Data Systems models Z-171 and Z-161 are known examples of such machines.",NULL
 
 g_szMultichoiceBootDispMode:	db	"Default",LF
 								db	"40x25 Black & White",LF
@@ -498,13 +526,23 @@ g_szMultichoiceColorTheme:		db	"Classic (default)",LF
 								db	"Neon Red",LF
 								db	"Phosphor Green",LF
 								db	"Moon Surface",LF
-								db	"Toxic Waste",NULL
+								db	"Toxic Waste",LF
+								db	"Amethyst",LF
+								db	"Emerald",LF
+								db	"Sapphire",LF
+								db	"Ruby",LF
+								db	"Liquid Crystal Display",NULL
 g_szValueColorTheme0:			db	"Classic",NULL
 g_szValueColorTheme1:			db	"Argon",NULL
 g_szValueColorTheme2:			db	"Neon",NULL
 g_szValueColorTheme3:			db	"Phosphor",NULL
 g_szValueColorTheme4:			db	"Moon",NULL
 g_szValueColorTheme5:			db	"Toxic",NULL
+g_szValueColorTheme6:			db	"Amethyst",NULL
+g_szValueColorTheme7:			db	"Emerald",NULL
+g_szValueColorTheme8:			db	"Sapphire",NULL
+g_szValueColorTheme9:			db	"Ruby",NULL
+g_szValueColorTheme10:			db	"LCD",NULL
 
 g_szMultichoiceBootFloppyDrvs:	db	"Autodetect",LF
 								db	"1",LF
@@ -555,12 +593,14 @@ g_szMultichoiceEepromType:		db	"2816 (2 kiB)",LF
 								db	"2864 (8 kiB)",LF
 								db	"2864 mod (8 kiB)",LF
 								db	"28256 (32 kiB)",LF
-								db	"28512 (64 kiB)",NULL
+								db	"28512 (64 kiB)",LF
+								db	"SST39SFx flash",NULL
 g_szValueFlash2816:				db	"2816",NULL
 g_szValueFlash2864:				db	"2864",NULL
 g_szValueFlash2864Mod:			db	"2864mod",NULL
 g_szValueFlash28256:			db	"28256",NULL
 g_szValueFlash28512:			db	"28512",NULL
+g_szValueFlashSST39SF:			db	"SST39SFx",NULL
 
 g_szMultichoiceSdpCommand:		db	"None",LF
 								db	"Enable",LF

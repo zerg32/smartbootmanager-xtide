@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -49,6 +49,14 @@ SECTION .text
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 IdeTransfer_StartWithCommandInAL:
+%ifdef USE_PS2
+	; Turn on the software controlled HDD LED on IBM PS/2 machines
+	xchg	bx, ax	; Save AX
+	in		al, 92h	; Read System Control Port A
+	or		al, 80h	; Set bit 7 to turn on LED (bit 6 would also work)
+	out		92h, al	; Write it back
+	xchg	bx, ax	; Restore AX
+%endif
 	; Are we reading or writing?
 	test	al, 16	; Bit 4 is cleared on all the read commands but set on 3 of the 4 write commands
 	mov		ah, [bp+IDEPACK.bSectorCount]
@@ -123,15 +131,28 @@ CheckErrorsAfterTransferringLastBlock:
 
 	; All sectors successfully transferred
 	add		cx, [bp+PIOVARS.bSectorsDone]		; Never sets CF
+%ifdef USE_PS2
+	; Turn off the software controlled HDD LED on IBM PS/2 machines
+	in		al, 92h	; Read System Control Port A
+	and		al, 3Fh	; Clear bits 7 and 6 to turn off LED
+	out		92h, al	; Write it back
+%endif
 	ret
 
 	; Return number of successfully read sectors
 ReturnWithTransferErrorInAH:
 %ifdef USE_386
-	movzx	cx, [bp+PIOVARS.bSectorsDone]
+	movzx	cx, BYTE [bp+PIOVARS.bSectorsDone]
 %else
 	mov		cl, [bp+PIOVARS.bSectorsDone]
 	mov		ch, 0								; Preserve CF
+%endif
+%ifdef USE_PS2
+	; Turn off the software controlled HDD LED on IBM PS/2 machines
+	in		al, 92h	; Read System Control Port A
+	and		al, 3Fh	; Clear bits 7 and 6 to turn off LED (Clears CF)
+	out		92h, al	; Write it back
+	stc				; Restore the CF
 %endif
 	ret
 
@@ -224,7 +245,7 @@ InitializePiovarsInSSBPwithSectorCountInAH:
 %endif
 	mov		ax, [di+DPT.wBasePort]
 	mov		[bp+PIOVARS.wDataPort], ax
-	eMOVZX	ax, [di+DPT_ATA.bBlockSize]
+	eMOVZX	ax, BYTE [di+DPT_ATA.bBlockSize]
 	mov		[bp+PIOVARS.wSectorsInBlock], ax
 	mov		[bp+PIOVARS.bSectorsDone], ah		; Zero
 
@@ -242,36 +263,27 @@ InitializePiovarsInSSBPwithSectorCountInAH:
 	jb		SHORT IdeTransfer_NormalizePointerInESSI
 
 	; Convert ES:SI to physical address
-%ifdef USE_386
-	mov		dx, es
-	xor		ax, ax
-	shld	ax, dx, 4
-	shl		dx, 4
-	add		si, dx
-	adc		al, ah
-	mov		es, ax
-
-%elifdef USE_186
-%ifdef USE_NEC_V
-	mov		dx, es
-	xor		ax, ax
-	eROL4	dl
-	eROL4	dh
-	add		si, dx
-	adc		al, ah
-	mov		es, ax
-
-%else
-	mov		ax, es
-	rol		ax, 4
-	mov		dx, ax
-	and		ax, 0Fh
-	xor		dx, ax
-	add		si, dx
-	adc		al, ah
-	mov		es, ax
-
-%endif
+%ifdef USE_386		; 17 bytes
+	mov		dx, es				; 2
+	xor		ax, ax				; 2
+	shld	ax, dx, 4			; 3
+	shl		dx, 4				; 3
+	add		si, dx				; 2
+	adc		al, ah				; 2
+	mov		es, ax				; 2
+							;------
+							;	 16 cycles on 386
+%elifdef USE_186	; 17 bytes
+	mov		ax, es				; 2
+	rol		ax, 4				; 3
+	mov		dx, ax				; 2
+	and		al, 0F0h			; 2
+	xor		dx, ax				; 2
+	add		si, ax				; 2
+	adc		dl, dh				; 2
+	mov		es, dx				; 2
+							;------
+							;	 17 cycles on 386
 %else ; 808x
 	mov		al, 4
 	mov		dx, es
@@ -279,11 +291,11 @@ InitializePiovarsInSSBPwithSectorCountInAH:
 	rol		dx, cl
 	mov		cx, dx
 	xchg	cx, ax
-	and		ax, 0Fh
+	and		al, 0F0h
 	xor		dx, ax
-	add		si, dx
-	adc		al, ah
-	mov		es, ax
+	add		si, ax
+	adc		dl, dh
+	mov		es, dx
 
 %endif
 
@@ -338,42 +350,44 @@ IdeTransfer_NormalizePointerInESSI:
 ; Lookup tables to get transfer function based on bus type
 ALIGN WORD_ALIGN
 g_rgfnPioRead:
-		dw		IdePioBlock_ReadFrom16bitDataPort		; 0, DEVICE_16BIT_ATA
+		dw		IdePioBlock_ReadFrom16bitDataPort		;  0, DEVICE_16BIT_ATA
 %ifdef MODULE_ADVANCED_ATA
-		dw		IdePioBlock_ReadFrom32bitDataPort		; 1, DEVICE_32BIT_ATA
+		dw		IdePioBlock_ReadFrom32bitDataPort		;  1, DEVICE_32BIT_ATA
 %elifdef MODULE_8BIT_IDE
 		dw		NULL
 %endif ; MODULE_ADVANCED_ATA
 %ifdef MODULE_8BIT_IDE
-		dw		IdePioBlock_ReadFrom8bitDataPort		; 2, DEVICE_8BIT_ATA
-		dw		IdePioBlock_ReadFromXtideRev1			; 3, DEVICE_8BIT_XTIDE_REV1
-		dw		IdePioBlock_ReadFrom16bitDataPort		; 4, DEVICE_8BIT_XTIDE_REV2
-		dw		IdePioBlock_ReadFromXtideRev2_Olivetti	; 5, DEVICE_8BIT_XTIDE_REV2_OLIVETTI
+		dw		IdePioBlock_ReadFrom8bitDataPort		;  2, DEVICE_8BIT_ATA
+		dw		IdePioBlock_ReadFrom16bitDataPort		;  3, DEVICE_8BIT_JUKO_D16X
+		dw		IdePioBlock_ReadFromXtideRev1			;  4, DEVICE_8BIT_XTIDE_REV1
+		dw		IdePioBlock_ReadFrom16bitDataPort		;  5, DEVICE_8BIT_XTIDE_REV2
+		dw		IdePioBlock_ReadFromXtideRev2_Olivetti	;  6, DEVICE_8BIT_XTIDE_REV2_OLIVETTI
 %ifdef MODULE_8BIT_IDE_ADVANCED
-		dw		IdePioBlock_ReadFrom8bitDataPort		; 6, DEVICE_8BIT_XTCF_PIO8
-		dw		IdePioBlock_ReadFrom16bitDataPort		; 7, DEVICE_8BIT_XTCF_PIO8_WITH_BIU_OFFLOAD
-		dw		IdePioBlock_ReadFrom16bitDataPort		; 8, DEVICE_8BIT_XTCF_PIO16_WITH_BIU_OFFLOAD
-		dw		IdeDmaBlock_ReadFromXTCF				; 9, DEVICE_8BIT_XTCF_DMA
+		dw		IdePioBlock_ReadFrom8bitDataPort		;  7, DEVICE_8BIT_XTCF_PIO8
+		dw		IdePioBlock_ReadFrom16bitDataPort		;  8, DEVICE_8BIT_XTCF_PIO8_WITH_BIU_OFFLOAD
+		dw		IdePioBlock_ReadFrom16bitDataPort		;  9, DEVICE_8BIT_XTCF_PIO16_WITH_BIU_OFFLOAD
+		dw		IdeDmaBlock_ReadFromXTCF				; 10, DEVICE_8BIT_XTCF_DMA
 %endif ; MODULE_8BIT_IDE_ADVANCED
 %endif ; MODULE_8BIT_IDE
 
 
 g_rgfnPioWrite:
-		dw		IdePioBlock_WriteTo16bitDataPort		; 0, DEVICE_16BIT_ATA
+		dw		IdePioBlock_WriteTo16bitDataPort		;  0, DEVICE_16BIT_ATA
 %ifdef MODULE_ADVANCED_ATA
-		dw		IdePioBlock_WriteTo32bitDataPort		; 1, DEVICE_32BIT_ATA
+		dw		IdePioBlock_WriteTo32bitDataPort		;  1, DEVICE_32BIT_ATA
 %elifdef MODULE_8BIT_IDE
 		dw		NULL
 %endif ; MODULE_ADVANCED_ATA
 %ifdef MODULE_8BIT_IDE
-		dw		IdePioBlock_WriteTo8bitDataPort			; 2, DEVICE_8BIT_ATA
-		dw		IdePioBlock_WriteToXtideRev1			; 3, DEVICE_8BIT_XTIDE_REV1
-		dw		IdePioBlock_WriteToXtideRev2			; 4, DEVICE_8BIT_XTIDE_REV2
-		dw		IdePioBlock_WriteToXtideRev2			; 5, DEVICE_8BIT_XTIDE_REV2_OLIVETTI
+		dw		IdePioBlock_WriteTo8bitDataPort			;  2, DEVICE_8BIT_ATA
+		dw		IdePioBlock_WriteToJukoD16X				;  3, DEVICE_8BIT_JUKO_D16X
+		dw		IdePioBlock_WriteToXtideRev1			;  4, DEVICE_8BIT_XTIDE_REV1
+		dw		IdePioBlock_WriteToXtideRev2			;  5, DEVICE_8BIT_XTIDE_REV2
+		dw		IdePioBlock_WriteToXtideRev2			;  6, DEVICE_8BIT_XTIDE_REV2_OLIVETTI
 %ifdef MODULE_8BIT_IDE_ADVANCED
-		dw		IdePioBlock_WriteTo8bitDataPort			; 6, DEVICE_8BIT_XTCF_PIO8
-		dw		IdePioBlock_WriteTo16bitDataPort		; 7, DEVICE_8BIT_XTCF_PIO8_WITH_BIU_OFFLOAD
-		dw		IdePioBlock_WriteTo16bitDataPort		; 8, DEVICE_8BIT_XTCF_PIO16_WITH_BIU_OFFLOAD
-		dw		IdeDmaBlock_WriteToXTCF					; 9, DEVICE_8BIT_XTCF_DMA
+		dw		IdePioBlock_WriteTo8bitDataPort			;  7, DEVICE_8BIT_XTCF_PIO8
+		dw		IdePioBlock_WriteTo16bitDataPort		;  8, DEVICE_8BIT_XTCF_PIO8_WITH_BIU_OFFLOAD
+		dw		IdePioBlock_WriteTo16bitDataPort		;  9, DEVICE_8BIT_XTCF_PIO16_WITH_BIU_OFFLOAD
+		dw		IdeDmaBlock_WriteToXTCF					; 10, DEVICE_8BIT_XTCF_DMA
 %endif ; MODULE_8BIT_IDE_ADVANCED
 %endif ; MODULE_8BIT_IDE

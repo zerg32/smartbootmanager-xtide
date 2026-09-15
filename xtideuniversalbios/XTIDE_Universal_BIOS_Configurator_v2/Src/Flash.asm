@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ SECTION .text
 ;	Parameters:
 ;		DS:SI:	Ptr to FLASHVARS
 ;	Returns:
-;		FLASHVARS.flashResult
+;		FLASHVARS.bFlashResult
 ;	Corrupts registers:
 ;		All, including segments
 ;--------------------------------------------------------------------
@@ -49,19 +49,20 @@ ALIGN JUMP_ALIGN
 
 	loop	.FlashNextPage
 %ifndef CHECK_FOR_UNUSED_ENTRYPOINTS
-%if FLASH_RESULT.success = 0	; Just in case this should ever change
-	mov		[bp+FLASHVARS.flashResult], cl
+%if FLASH_RESULT.Success = 0	; Just in case this should ever change
+	mov		[bp+FLASHVARS.bFlashResult], cl
 %else
-	mov		BYTE [bp+FLASHVARS.flashResult], FLASH_RESULT.success
+	mov		BYTE [bp+FLASHVARS.bFlashResult], FLASH_RESULT.Success
 %endif
 %endif
 	ret
 
 .PollingError:
-	mov		BYTE [bp+FLASHVARS.flashResult], FLASH_RESULT.PollingTimeoutError
-	ret
+	mov		al, FLASH_RESULT.PollingTimeoutError
+	SKIP2B	f
 .DataVerifyError:
-	mov		BYTE [bp+FLASHVARS.flashResult], FLASH_RESULT.DataVerifyError
+	mov		al, FLASH_RESULT.DataVerifyError
+	mov		[bp+FLASHVARS.bFlashResult], al
 	ret
 
 
@@ -105,7 +106,7 @@ Flash_SinglePageWithFlashvarsInSSBP:
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 .GetSdpCommandFunctionToAXwithFlashvarsInSSBP:
-	eMOVZX	bx, [bp+FLASHVARS.bEepromSdpCommand]
+	eMOVZX	bx, BYTE [bp+FLASHVARS.bEepromSdpCommand]
 	mov		si, [cs:bx+.rgpSdpCommandToEepromTypeLookupTable]
 	mov		bl, [bp+FLASHVARS.bEepromType]
 	mov		ax, [cs:bx+si]
@@ -122,18 +123,21 @@ ALIGN WORD_ALIGN
 	dw		DoNotWriteAnySdpCommand					; EEPROM_TYPE.2864_8kiB_MOD
 	dw		DoNotWriteAnySdpCommand					; EEPROM_TYPE.28256_32kiB
 	dw		DoNotWriteAnySdpCommand					; EEPROM_TYPE.28512_64kiB
+	dw		DoNotWriteAnySdpCommand					; EEPROM_TYPE.SST_39SF
 .rgfnEnableSdpAndFlash:		; SDP_COMMAND.enable
 	dw		WriteSdpEnableCommandFor2816			; EEPROM_TYPE.2816_2kiB
 	dw		WriteSdpEnableCommandFor2864			; EEPROM_TYPE.2864_8kiB
 	dw		WriteSdpEnableCommandFor2864mod			; EEPROM_TYPE.2864_8kiB_MOD
 	dw		WriteSdpEnableCommandFor28256or28512	; EEPROM_TYPE.28256_32kiB
 	dw		WriteSdpEnableCommandFor28256or28512	; EEPROM_TYPE.28512_64kiB
+	dw		DoNotWriteAnySdpCommand					; EEPROM_TYPE.SST_39SF
 .rgfnDisableSdpAndFlash:	; SDP_COMMAND.disable
 	dw		WriteSdpDisableCommandFor2816			; EEPROM_TYPE.2816_2kiB
 	dw		WriteSdpDisableCommandFor2864			; EEPROM_TYPE.2864_8kiB
 	dw		WriteSdpDisableCommandFor2864mod		; EEPROM_TYPE.2864_8kiB_MOD
 	dw		WriteSdpDisableCommandFor28256or28512	; EEPROM_TYPE.28256_32kiB
 	dw		WriteSdpDisableCommandFor28256or28512	; EEPROM_TYPE.28512_64kiB
+	dw		DoNotWriteAnySdpCommand					; EEPROM_TYPE.SST_39SF
 
 
 ;--------------------------------------------------------------------

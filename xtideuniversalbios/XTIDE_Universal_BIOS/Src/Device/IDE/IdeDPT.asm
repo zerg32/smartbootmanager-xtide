@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -112,10 +112,13 @@ IdeDPT_Finalize:	; Unused entrypoint OK
 ;		AX, BX, CX, DX
 ;--------------------------------------------------------------------
 .DetectAdvancedIdeController:
+%ifdef MODULE_8BIT_IDE OR MODULE_SERIAL
 	; Detection is only relevant on standard devices. XT-CF seems to give false positive for
-	; PDC20x30 detection so better to skip detection for 8-bit devices
+	; PDC20x30 detection so better to skip detection for 8-bit devices. (This check is only
+	; needed in builds that includes modules providing device types above DEVICE_32BIT_ATA.)
 	cmp		BYTE [di+DPT_ATA.bDevice], DEVICE_32BIT_ATA
 	ja		SHORT .NoAdvancedControllerDetected
+%endif
 
 	mov		bx, [di+DPT.wBasePort]
 	call	AdvAtaInit_DetectControllerForIdeBaseInBX
@@ -132,15 +135,16 @@ IdeDPT_Finalize:	; Unused entrypoint OK
 	MIN_U	[di+DPT_ADVANCED_ATA.bPioMode], al
 	mov		[di+DPT_ADVANCED_ATA.wMinPioCycleTime], bx
 
-	; We have detected 32-bit controller so change Device Type since
-	; it might have been set to 16-bit on IDEVARS
+	; We have detected 32-bit controller so change Device Type
+	; since it might have been set to 16-bit on IDEVARS
 .ChangeTo32bitDevice:
+	; *FIXME* We might need to add code to detect the IBM 486SLC2 CPU (and possibly other
+	; 386+ class CPUs with a 16-bit external bus?) to avoid changing to DEVICE_32BIT_ATA.
 	mov		BYTE [di+DPT_ATA.bDevice], DEVICE_32BIT_ATA
 .NoAdvancedControllerDetected:
 %endif	; MODULE_ADVANCED_ATA
 
-
-; End DPT
+	; End DPT
 	clc
 	ret
 

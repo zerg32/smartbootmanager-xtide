@@ -28,7 +28,7 @@ SECTION .text
 ;		CS:DX:	Ptr to notification/error string to display
 ;		SS:BP:	Menu handle
 ;	Returns:
-;		Nothing
+;		ZF:		Cleared
 ;	Corrupts registers:
 ;		AX
 ;--------------------------------------------------------------------
@@ -52,7 +52,7 @@ Dialogs_DisplayErrorFromCSDX:
 ;		CS:DI:	Ptr to title string for help dialog
 ;		SS:BP:	Menu handle
 ;	Returns:
-;		Nothing
+;		ZF:		Cleared
 ;	Corrupts registers:
 ;		AX
 ;--------------------------------------------------------------------
@@ -71,7 +71,7 @@ DisplayMessageDialogWithMessageInCSDXandDialogInputInDSSI:
 	mov		[si+DIALOG_INPUT.fszItems], dx
 	CALL_MENU_LIBRARY DisplayMessageWithInputInDSSI
 
-	add		sp, BYTE DIALOG_INPUT_size
+	add		sp, BYTE DIALOG_INPUT_size	; Clears ZF
 	pop		cx
 	pop		si
 	pop		ds

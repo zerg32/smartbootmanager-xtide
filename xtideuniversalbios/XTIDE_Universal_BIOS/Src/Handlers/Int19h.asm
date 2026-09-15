@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -29,27 +29,34 @@ SECTION .text
 ;--------------------------------------------------------------------
 Int19h_BootLoaderHandler:
 %ifdef XTIDE_SBM_RETURN
-	; SBM calls INT 19h solely to trigger XT-IDE's normal initialization path.
-	; Use XT-IDE's dedicated stack, then restore the INT frame before returning.
+	; SBM invokes INT 19h only to install XT-IDE's drive services. Return to its
+	; menu after initialization instead of loading a boot sector.
 	sti
+%ifdef CLD_NEEDED
 	cld
+%endif
 	LOAD_BDA_SEGMENT_TO	es, ax
 	STORE_POST_STACK_POINTER
 	SWITCH_TO_BOOT_MENU_STACK
 	call	Initialize_AndDetectDrives
 %ifdef MODULE_HOTKEYS
-	; The normal boot path removes this temporary hotkey timer hook before
-	; handing control to a boot sector. SBM continues running after this
-	; return, so restore the system timer handler here as well.
 	push	ds
 	push	es
 	pop		ds
+	; r638 safely restores the full timer vector with one 386 memory write.
+%ifdef USE_386
+	push	eax
+	mov		eax, [BOOTVARS.hotkeyVars+HOTKEYVARS.fpPrevTimerHandler]
+	mov		[BIOS_SYSTEM_TIMER_TICK_INTERRUPT_08h*4], eax
+	pop		eax
+%else
 	cli
 	mov		ax, [BOOTVARS.hotkeyVars+HOTKEYVARS.fpPrevTimerHandler]
 	mov		[BIOS_SYSTEM_TIMER_TICK_INTERRUPT_08h*4], ax
 	mov		ax, [BOOTVARS.hotkeyVars+HOTKEYVARS.fpPrevTimerHandler+2]
 	mov		[BIOS_SYSTEM_TIMER_TICK_INTERRUPT_08h*4+2], ax
 	sti
+%endif
 	pop		ds
 %endif
 	mov		ax, es
@@ -71,7 +78,6 @@ Int19h_BootLoaderHandler:
 	LOAD_BDA_SEGMENT_TO	es, ax					; Load BDA segment (zero) to ES
 %endif
 	; Fall to .PrepareBootLoaderStack
-%endif
 
 
 ;--------------------------------------------------------------------
@@ -86,6 +92,8 @@ Int19h_BootLoaderHandler:
 ;	Returns:
 ;		Never returns (loads operating system)
 ;--------------------------------------------------------------------
+%endif
+
 .PrepareBootLoaderStack:
 	STORE_POST_STACK_POINTER
 	SWITCH_TO_BOOT_MENU_STACK
@@ -136,12 +144,19 @@ Int19h_BootLoaderHandler:
 	jb		SHORT .WaitUntilTimeToCloseHotkeyBar
 
 	; Restore system timer tick handler since hotkeys are no longer needed
+%ifdef USE_386
+	push	eax			; Save the high WORD of EAX
+	mov		eax, [BOOTVARS.hotkeyVars+HOTKEYVARS.fpPrevTimerHandler]
+	mov		[BIOS_SYSTEM_TIMER_TICK_INTERRUPT_08h*4], eax
+	pop		eax			; Restore the high WORD of EAX
+%else
 	cli
 	mov		ax, [BOOTVARS.hotkeyVars+HOTKEYVARS.fpPrevTimerHandler]
 	mov		[BIOS_SYSTEM_TIMER_TICK_INTERRUPT_08h*4], ax
 	mov		ax, [BOOTVARS.hotkeyVars+HOTKEYVARS.fpPrevTimerHandler+2]
 	mov		[BIOS_SYSTEM_TIMER_TICK_INTERRUPT_08h*4+2], ax
 	sti
+%endif
 
 	pop		ds
 %endif
@@ -278,6 +293,6 @@ Int19h_JumpToBootSectorInESBXOrRomBootWithoutStackChange:
 	push	bx			; offset address for MBR
 	retf				; NOTE:	DL is set to the drive number
 
-; Boot by calling INT 18h (ROM Basic of ROM DOS)
+; Boot by calling INT 18h (ROM Basic or ROM DOS)
 .RomBoot:
 	int		BIOS_BOOT_FAILURE_INTERRUPT_18h	; Never returns

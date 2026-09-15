@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -55,8 +55,7 @@ DriveEventHandler:
 
 ALIGN JUMP_ALIGN
 .InitializeMenuinitFromDSSI:
-	xor		ax, ax
-	call	Dialog_EventInitializeMenuinitFromDSSIforSingleItemWithHighlightedItemInAX
+	call	Dialog_EventInitializeMenuinitFromDSSIforSingleItemWithItemZero
 	call	Drive_GetFlagsForAvailableDrivesToDXAX
 	mov		[bp+MENU.dwUserData], ax
 	mov		[bp+MENU.dwUserData+2], dx

@@ -78,6 +78,7 @@ String_ConvertWordToAXfromStringInDSSIwithBaseInBX:
 ;	Returns:
 ;		CX:		Number of characters copied
 ;		SI,DI:	Updated by CX characters
+;		CF:		Cleared
 ;	Corrupts registers:
 ;		Nothing
 ;--------------------------------------------------------------------
@@ -89,16 +90,11 @@ String_CopyDSSItoESDIandGetLengthToCX:
 ALIGN STRING_JUMP_ALIGN
 .CopyNextCharacter:
 	lodsb						; Load from DS:SI to AL
-	test	al, al				; NULL to end string?
-	jz		SHORT .EndOfString
+	test	al, al				; NULL to end string? (Clears CF)
+	jz		SHORT PopAXandReturn
 	stosb						; Store from AL to ES:DI
 	inc		cx					; Increment number of characters written
 	jmp		SHORT .CopyNextCharacter
-
-ALIGN STRING_JUMP_ALIGN
-.EndOfString:
-	pop		ax
-	ret
 
 
 ;--------------------------------------------------------------------
@@ -125,5 +121,6 @@ String_GetLengthFromDSSItoCX:
 	pop		si
 	stc
 	sbb		cx, si		; Subtract NULL
+PopAXandReturn:
 	pop		ax
 	ret

@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -140,13 +140,23 @@ DetectPortMappedDeviceFromPortDX:
 	call	DetectIdeDeviceFromPortsDXandSIwithOffsetsInBLandBH
 	jc		SHORT .ContinueDetection
 	mov		al, DEVICE_8BIT_XTCF_PIO8_WITH_BIU_OFFLOAD
-	cmp		BYTE [cs:IsOlivettiM24], 1
+	cmp		BYTE [cs:bIsOlivettiM24], 1
 	jne		SHORT .IdeDeviceFound
 	mov		al, DEVICE_8BIT_XTCF_PIO8
 	ret		; With CF cleared
 .ContinueDetection:
 	shr		bx, 1
 .SkipXTCF:
+
+	; *** Try to detect Juko D16-X ***
+	cmp		dx, 320h
+	jne		SHORT .NotJukoD16X
+	mov		si, 3F0h
+	call	DetectIdeDeviceFromPortsDXandSIwithOffsetsInBLandBH
+	jc		SHORT .NotJukoD16X
+	mov		al, DEVICE_8BIT_JUKO_D16X
+	ret		; With CF cleared
+.NotJukoD16X:
 
 	; *** Try to detect 8-bit XT-IDE rev 1 or rev 2 ***
 	; Note that A0<->A3 address swaps Status Register and Alternative
@@ -171,7 +181,7 @@ DetectPortMappedDeviceFromPortDX:
 	pop		dx
 	cmp		al, DEVICE_8BIT_XTIDE_REV2
 	jne		SHORT .XtideRev1
-	cmp		BYTE [cs:IsOlivettiM24], 1
+	cmp		BYTE [cs:bIsOlivettiM24], 1
 	jne		SHORT .IdeDeviceFound
 	mov		al, DEVICE_8BIT_XTIDE_REV2_OLIVETTI
 	ret		; With CF cleared
@@ -328,7 +338,7 @@ ALIGN WORD_ALIGN
 	dw		2C0h
 	dw		2E0h
 	dw		300h
-	dw		320h
+	dw		320h	; Juko D16-X (with Control Block at 3F0h and no IRQ)
 	dw		340h
 	dw		360h	; Acculogic sIDE-1/16 (same controller type as XT-IDE rev 1)
 	dw		380h

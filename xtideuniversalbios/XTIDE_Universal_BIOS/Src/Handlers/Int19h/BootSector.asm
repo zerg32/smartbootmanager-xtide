@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -27,10 +27,11 @@ SECTION .text
 ;		DS:		RAMVARS segment
 ;	Returns:
 ;		ES:BX:	Ptr to boot sector (if successful)
-;		CF:		Set if boot sector loaded successfully
-;				Cleared if failed to load boot sector
+;		CF:		Cleared if boot sector loaded successfully
+;				(only matters when jumping to
+;				Int19h_JumpToBootSectorInESBXOrRomBoot)
 ;	Corrupts registers:
-;		AX, CX, DH, SI, DI, (DL if failed to read boot sector)
+;		AX, CX, DH, SI, DI
 ;--------------------------------------------------------------------
 BootSector_TryToLoadFromDriveDL_AndBoot:
 	call	DetectPrint_TryToBootFromDL
@@ -41,32 +42,18 @@ BootSector_TryToLoadFromDriveDL_AndBoot:
 	; it most likely mean no diskette in drive. This way we do not
 	; display error code every time user intends to boot from hard disk
 	; when A then C boot order is used.
-	test	dl, dl
-	js		SHORT .PrintFailedToLoadErrorCode	; Hard Drive
-	cmp		ah, RET_HD_TIMEOUT
-	je		SHORT .ReturnWithCFclearSinceFailedToLoadBootSector
-	cmp		ah, RET_HD_NOMEDIA
-	je		SHORT .ReturnWithCFclearSinceFailedToLoadBootSector
+	call	BootSector_DriveDLIsEmptyFloppydrive
+	jz		SHORT BootSector_LoadFirstSectorFromDriveDL.Return
 .PrintFailedToLoadErrorCode:
-	call	DetectPrint_FailedToLoadFirstSector
-	jmp		SHORT .ReturnWithCFclearSinceFailedToLoadBootSector
-
+	jmp		DetectPrint_FailedToLoadFirstSector
 
 .FirstSectorLoadedToESBX:
 	test	dl, dl
-	jns		SHORT .AlwaysBootFromFloppyDriveForBooterGames
-	cmp		WORD [es:bx+510], 0AA55h		; Valid boot sector?
-	jne		SHORT .FirstHardDiskSectorNotBootable
-.AlwaysBootFromFloppyDriveForBooterGames:
-	clc		; Boot Sector loaded successfully
-	jmp		SHORT Int19h_JumpToBootSectorInESBXOrRomBoot
-
-.FirstHardDiskSectorNotBootable:
+	jns		SHORT Int19h_JumpToBootSectorInESBXOrRomBoot	; Don't check for boot sector signature for floppy booter games
+	cmp		WORD [es:bx+510], 0AA55h						; Valid boot sector?
+	je		SHORT Int19h_JumpToBootSectorInESBXOrRomBoot	; With CF cleared
 	mov		si, g_szBootSectorNotFound
-	call	DetectPrint_NullTerminatedStringFromCSSI
-.ReturnWithCFclearSinceFailedToLoadBootSector:
-	clc
-	ret
+	jmp		DetectPrint_NullTerminatedStringFromCSSI
 
 
 ;--------------------------------------------------------------------
@@ -99,10 +86,40 @@ BootSector_LoadFirstSectorFromDriveDL:
 	dec		di								; Decrement retry counter (preserve CF)
 	jz		SHORT .Return					; Loop while retries left
 
+	; If the boot drive is a floppy drive and it is deemed to be empty then
+	; we give up immediately to avoid unnecessarily long delays when booting.
+	; This is particularly aggravating when using builds with first-A-then-C
+	; boot order (i.e. non-interactive builds such as the Tiny build).
+	call	BootSector_DriveDLIsEmptyFloppydrive
+	jz		SHORT .Return					; With CF set
+
 	; Reset drive and retry
 	xor		ax, ax							; AH=00h, Disk Controller Reset
 	test	dl, dl							; Floppy drive?
 	eCMOVS	ah, RESET_HARD_DISK				; AH=0Dh, Reset Hard Disk (Alternate reset)
 	int		BIOS_DISK_INTERRUPT_13h
 	jmp		SHORT .ReadRetryLoop
+
+
+;--------------------------------------------------------------------
+; BootSector_DriveDLIsEmptyFloppydrive
+;	Parameters:
+;		AH:		INT 13h error code
+;		DL:		Drive to boot from (translated, 00h or 80h)
+;	Returns:
+;		CF:		Set
+;		ZF:		Set if DL is a floppy drive with no diskette inserted
+;				Cleared if not
+;	Corrupts registers:
+;		Nothing
+;--------------------------------------------------------------------
+BootSector_DriveDLIsEmptyFloppydrive:
+	test	dl, dl
+	jnz		SHORT .Return					; Hard Drive
+	cmp		ah, RET_HD_TIMEOUT
+	je		SHORT .Return
+	cmp		ah, RET_HD_NOMEDIA
+.Return:
+	stc
+	ret
 

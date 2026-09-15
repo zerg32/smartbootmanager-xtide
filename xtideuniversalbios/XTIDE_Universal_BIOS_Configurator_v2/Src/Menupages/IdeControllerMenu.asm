@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -132,7 +132,7 @@ istruc MENUITEM
 	at	MENUITEM.bFlags,			db	FLG_MENUITEM_MODIFY_MENU | FLG_MENUITEM_BYTEVALUE
 	at	MENUITEM.bType,				db	TYPE_MENUITEM_HEX
 	at	MENUITEM.itemValue + ITEM_VALUE.wRomvarsValueOffset,		dw	NULL
-	at	MENUITEM.itemValue + ITEM_VALUE.szDialogTitle,				dw	g_szDlgIdeCmdPort
+	at	MENUITEM.itemValue + ITEM_VALUE.szDialogTitle,				dw	g_szDlgIdeSerialPort
 	at	MENUITEM.itemValue + ITEM_VALUE.wMinValue,					dw	8h
 	at	MENUITEM.itemValue + ITEM_VALUE.wMaxValue,					dw	3F8h
 	at	MENUITEM.itemValue + ITEM_VALUE.fnValueReader,				dw	IdeControllerMenu_SerialReadPort
@@ -190,6 +190,7 @@ g_rgwChoiceToValueLookupForDevice:
 	dw	DEVICE_16BIT_ATA
 	dw	DEVICE_32BIT_ATA
 	dw	DEVICE_8BIT_ATA
+	dw	DEVICE_8BIT_JUKO_D16X
 	dw	DEVICE_8BIT_XTIDE_REV1
 	dw	DEVICE_8BIT_XTIDE_REV2
 	dw	DEVICE_8BIT_XTIDE_REV2_OLIVETTI
@@ -204,6 +205,7 @@ g_rgszValueToStringLookupForDevice:
 	dw	g_szValueCfgDevice16b
 	dw	g_szValueCfgDevice32b
 	dw	g_szValueCfgDevice8b
+	dw	g_szValueCfgDeviceJukoD16X
 	dw	g_szValueCfgDeviceRev1
 	dw	g_szValueCfgDeviceRev2
 	dw	g_szValueCfgDeviceRev2Olivetti
@@ -228,7 +230,7 @@ g_rgbChoiceToValueLookupForCOM:
 	dw	'A'
 	dw	'B'
 	dw	'C'
-	dw	'x'				; must be last entry (see reader/write routines)
+	dw	'x'				; must be last entry (see reader/writer routines)
 g_rgszChoiceToStringLookupForCOM:
 	dw	g_szValueCfgCOM1
 	dw	g_szValueCfgCOM2
@@ -299,42 +301,42 @@ SECTION .text
 ALIGN JUMP_ALIGN
 IdeControllerMenu_InitializeToIdevarsOffsetInBX:
 	lea		ax, [bx+IDEVARS.drvParamsMaster]
-	mov		[cs:g_MenuitemIdeControllerMasterDrive+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
+	mov		[g_MenuitemIdeControllerMasterDrive+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
 
 	lea		ax, [bx+IDEVARS.drvParamsSlave]
-	mov		[cs:g_MenuitemIdeControllerSlaveDrive+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
+	mov		[g_MenuitemIdeControllerSlaveDrive+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
 
 	lea		ax, [bx+IDEVARS.bDevice]
-	mov		[cs:g_MenuitemIdeControllerDevice+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
+	mov		[g_MenuitemIdeControllerDevice+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
 
 %ifndef CHECK_FOR_UNUSED_ENTRYPOINTS
 %if IDEVARS.wBasePort = 0
-	mov		[cs:g_MenuitemIdeControllerCommandBlockAddress+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], bx
+	mov		[g_MenuitemIdeControllerCommandBlockAddress+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], bx
 %else
 	lea		ax, [bx+IDEVARS.wBasePort]
-	mov		[cs:g_MenuitemIdeControllerCommandBlockAddress+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
+	mov		[g_MenuitemIdeControllerCommandBlockAddress+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
 %endif
 
 %if IDEVARS.bSerialPort = 0
-	mov		[cs:g_MenuitemIdeControllerSerialPort+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], bx
+	mov		[g_MenuitemIdeControllerSerialPort+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], bx
 %else
 	lea		ax, [bx+IDEVARS.bSerialPort]
-	mov		[cs:g_MenuitemIdeControllerSerialPort+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
+	mov		[g_MenuitemIdeControllerSerialPort+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
 %endif
 %endif
 
 	lea		ax, [bx+IDEVARS.bSerialBaud]
-	mov		[cs:g_MenuitemIdeControllerSerialBaud+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
+	mov		[g_MenuitemIdeControllerSerialBaud+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
 
 	lea		ax, [bx+IDEVARS.wControlBlockPort]
-	mov		[cs:g_MenuitemIdeControllerControlBlockAddress+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
+	mov		[g_MenuitemIdeControllerControlBlockAddress+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
 
 	lea		ax, [bx+IDEVARS.bSerialCOMPortChar]
-	mov		[cs:g_MenuitemIdeControllerSerialCOM+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
+	mov		[g_MenuitemIdeControllerSerialCOM+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
 
 	lea		ax, [bx+IDEVARS.bIRQ]
-	mov		[cs:g_MenuitemIdeControllerEnableInterrupt+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
-	mov		[cs:g_MenuitemIdeControllerIdeIRQ+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
+	mov		[g_MenuitemIdeControllerEnableInterrupt+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
+	mov		[g_MenuitemIdeControllerIdeIRQ+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset], ax
 
 	ret
 
@@ -420,12 +422,14 @@ ALIGN JUMP_ALIGN
 	mov		bx, g_MenuitemIdeControllerEnableInterrupt
 	cmp		al, DEVICE_8BIT_XTCF_PIO8
 	jae		SHORT .DisableMenuitemFromCSBX
-
+	cmp		al, DEVICE_8BIT_JUKO_D16X
+	je		SHORT .DisableMenuitemFromCSBX
 	call	EnableMenuitemFromCSBX
 	; Fall to .EnableOrDisableIRQchannelSelection
 
 ;--------------------------------------------------------------------
 ; .EnableOrDisableIRQchannelSelection
+; .DisableIRQchannelSelection
 ;	Parameters:
 ;		SS:BP:	Menu handle
 ;	Returns:
@@ -511,14 +515,14 @@ ALIGN JUMP_ALIGN
 MasterDrive:
 	mov		bx, g_MenuitemMasterSlaveDisableDetection
 	call	DisableMenuitemFromCSBX
-	mov		bx, [cs:g_MenuitemIdeControllerMasterDrive+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset]
+	mov		bx, [g_MenuitemIdeControllerMasterDrive+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset]
 	jmp		SHORT DisplayMasterSlaveMenu
 
 ALIGN JUMP_ALIGN
 SlaveDrive:
 	mov		bx, g_MenuitemMasterSlaveDisableDetection
 	call	EnableMenuitemFromCSBX
-	mov		bx, [cs:g_MenuitemIdeControllerSlaveDrive+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset]
+	mov		bx, [g_MenuitemIdeControllerSlaveDrive+MENUITEM.itemValue+ITEM_VALUE.wRomvarsValueOffset]
 	; Fall to DisplayMasterSlaveMenu
 
 DisplayMasterSlaveMenu:
@@ -565,18 +569,24 @@ IdeControllerMenu_WriteDevice:
 
 	; Standard ATA controllers, including 8-bit mode
 .StandardIdeDevice:
-	; Enable IRQ for standard ATA
+	; Enable IRQ for standard ATA, but only if MODULE_IRQ is included
 
 	lea		ax, [di-ROMVARS.ideVars0+IDEVARS.wBasePort]
 	mov		bl, IDEVARS_size
 	div		bl
-	push	ax
+
+	test	BYTE [es:ROMVARS.wFlags+1], FLG_ROMVARS_MODULE_IRQ >> 8
+	jz		SHORT .DoNotEnableIrq
+
 	mov		bx, .rgbDefaultIrqForStdIde			; Enable interrupt for primary and secondary IDE
+	push	ax
 	xlat
-	mov		[es:di+IDEVARS.bIRQ-IDEVARS.wBasePort], al
+	mov		[es:di+IDEVARS.bIRQ], al
 	pop		ax
-	sub		bx, BYTE .rgbDefaultIrqForStdIde - .rgbLowByteOfStdIdeInterfacePorts
-	xlat										; DS=CS so no segment override needed
+
+.DoNotEnableIrq:
+	mov		bx, .rgbLowByteOfStdIdeInterfacePorts
+	xlat
 	mov		ah, 1								; DEVICE_ATA_*_PORT >> 8
 	mov		bh, 3								; DEVICE_ATA_*_PORTCTRL >> 8
 	mov		bl, al
@@ -617,6 +627,8 @@ IdeControllerMenu_WriteDevice:
 
 	; We know MODULE_8BIT_IDE is included
 	lahf	; Save the PF
+	cmp		al, DEVICE_8BIT_JUKO_D16X
+	je		SHORT .ChangingToJukoD16X
 	cmp		al, DEVICE_8BIT_XTIDE_REV2_OLIVETTI
 	jbe		SHORT .ChangingToXTIDEorXTCF
 	sahf	; Restore the PF
@@ -632,13 +644,19 @@ IdeControllerMenu_WriteDevice:
 
 	; XT-CF does not support IRQ so it must be disabled (IRQ setting is not visible for XT-CF)
 	; XTIDE does not use IRQs by default
-	mov		BYTE [es:di+IDEVARS.bIRQ-IDEVARS.wBasePort], 0
+.DisableIRQsAndWriteNonSerial:
+	mov		BYTE [es:di+IDEVARS.bIRQ], 0
 
 .WriteNonSerial:
 	stosw										; Store defaults in IDEVARS.wBasePort and IDEVARS.wBasePortCtrl
 	xchg	bx, ax
 	stosw
 	jmp		SHORT .Done
+
+.ChangingToJukoD16X:
+	mov		ax, 320h
+	mov		bx, 3F0h
+	jmp		SHORT .DisableIRQsAndWriteNonSerial
 
 .ChangingToJrIdeIsa:
 	mov		ah, JRIDE_DEFAULT_SEGMENT_ADDRESS >> 8
@@ -648,23 +666,15 @@ IdeControllerMenu_WriteDevice:
 	mov		ah, ADP50L_DEFAULT_BIOS_SEGMENT_ADDRESS >> 8
 	xor		al, al
 	xor		bx, bx
-	jmp		SHORT .WriteNonSerial
+	jmp		SHORT .DisableIRQsAndWriteNonSerial
 
 .ChangingToSerial:
-;
-; For serial drives, we pack the port number and baud rate into a single byte, and thus
-; we need to take care to properly read/write just the bits we need.  In addition, since
-; we use the Port/PortCtrl bytes in a special way for serial drives, we need to properly
-; default the values stored in both these words when switching in and out of the Serial
-; device choice.
-;
-	mov		al, SERIAL_DEFAULT_COM
-	mov		BYTE [es:di+IDEVARS.bSerialBaud-IDEVARS.wBasePort], SERIAL_DEFAULT_BAUD
-	mov		[es:di+IDEVARS.bIRQ-IDEVARS.wBasePort], ah	; Clear .bIRQ to keep the boot menu from printing it
-
+	mov		al, ah								; Clear AL to point to the default COM port in the PackedCOMPortAddresses table
+	mov		BYTE [es:di+IDEVARS.bSerialBaud], SERIAL_DEFAULT_BAUD
+	mov		[es:di+IDEVARS.bIRQ], ah			; Clear .bIRQ to keep the boot menu from printing it
 	sub		di, IDEVARS.wBasePort - IDEVARS.bSerialCOMPortChar
+	mov		BYTE [es:di], SERIAL_DEFAULT_COM
 	call	IdeControllerMenu_SerialWriteCOM
-	stosb
 
 .Done:
 	pop		ax
@@ -678,39 +688,20 @@ IdeControllerMenu_WriteDevice:
 ; Updates the port address based on COM port selection
 ;
 ;	Parameters:
-;		AL:		COM port
+;		AX:		COM port menu choice index
 ;		ES:DI:	Ptr to IDEVARS.bSerialCOMPortChar
 ;		DS:SI:	MENUITEM pointer
 ;	Returns:
-;		Nothing
+;		AX:		COM port menu choice index
 ;	Corrupts registers:
 ;		BX
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 IdeControllerMenu_SerialWriteCOM:
-	push	ax
-	push	si
-
-	mov		bx, PackedCOMPortAddresses - 1
-	mov		si, g_rgbChoiceToValueLookupForCOM - 2
-
-.Loop:
-	inc		bx
-	inc		si
-	inc		si
-
-	mov		ah, [bx]
-	cmp		ah, SERIAL_DEFAULT_CUSTOM_PORT >> 2
-	je		SHORT .NotFound
-
-	cmp		al, [si]
-	jne		SHORT .Loop
-
-.NotFound:
-	mov		[es:di+IDEVARS.bSerialPort-IDEVARS.bSerialCOMPortChar], ah
-
-	pop		si
-	pop		ax
+	xchg	bx, ax
+	mov		al, [bx+PackedCOMPortAddresses]
+	mov		[es:di+IDEVARS.bSerialPort-IDEVARS.bSerialCOMPortChar], al
+	xchg	bx, ax
 	ret
 
 

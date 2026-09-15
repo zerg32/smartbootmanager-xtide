@@ -4,7 +4,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ AtaID_PopESSIandFixIllegalValuesFromESSI:
 	pop		si
 	pop		es
 %endif
-AtaID_FixIllegalValuesFromESSI:
+AtaID_FixIllegalValuesFromESSI:	; Unused entrypoint OK
 	jc		SHORT .Return	; Nothing to fix since failed to read ATA Info
 
 	; Only correct cylinders since there are no reports that head or sectors could be wrong
@@ -214,13 +214,14 @@ AtaID_ModifyESSIforUserDefinedLimitsAndReturnTranslateModeInDX:
 AtaID_GetMaxPioModeToAXandMinCycleTimeToCX:
 	; Get PIO mode and cycle time for PIO 0...2
 %ifdef USE_386
-	movzx	ax, [es:si+ATA1.bPioMode]	; AH = 0, AL = PIO mode 0, 1 or 2
+	movzx	ax, BYTE [es:si+ATA1.bPioMode]	; AH = 0, AL = PIO mode 0, 1 or 2
+	lea		bx, [eax+eax]
 %else
 	mov		al, [es:si+ATA1.bPioMode]
 	cbw
-%endif
 	mov		bx, ax
 	eSHL_IM	bx, 1						; Shift for WORD lookup
+%endif
 	mov		cx, [cs:bx+.rgwPio0to2CycleTimeInNanosecs]
 
 	; Check if IORDY is supported
@@ -260,7 +261,7 @@ AtaID_GetMaxPioModeToAXandMinCycleTimeToCX:
 ;		Nothing
 ;--------------------------------------------------------------------
 AtaID_GetActiveTimeToAXfromPioModeInBX:
-	eMOVZX	ax, [cs:bx+.rgbPioModeToActiveTimeNs]
+	eMOVZX	ax, BYTE [cs:bx+.rgbPioModeToActiveTimeNs]
 	ret
 
 .rgbPioModeToActiveTimeNs:

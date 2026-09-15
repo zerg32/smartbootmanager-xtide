@@ -59,8 +59,13 @@ BITS 16							; Set 16 bit code generation
 		WORD_ALIGN		EQU		2
 	%endif
 %else ; XT
-	JUMP_ALIGN		EQU		1	; 2 is optimal for 8086 and NEC V30 CPUs but it's not worth the ROM space for most XT machines with 8088 or NEC V20 CPUs.
-	WORD_ALIGN		EQU		2	; The same applies here but the cost of ROM space is negligible.
+	%ifndef USE_086 ; 8088/V20 CPUs
+		JUMP_ALIGN		EQU		1	; 2 is optimal for 8086 and NEC V30 CPUs but it's not worth the ROM space for most XT machines with 8088 or NEC V20 CPUs.
+		WORD_ALIGN		EQU		2	; The same applies here but the cost of ROM space is negligible.
+	%else ; 8086/V30 CPUs
+		JUMP_ALIGN		EQU		2
+		WORD_ALIGN		EQU		2
+	%endif
 %endif
 
 ;==========================================================================
@@ -182,7 +187,7 @@ BITS 16							; Set 16 bit code generation
 ;		%1:		Destination WORD Register for bit index (not CX or same as %2!)
 ;		%2:		Source WORD operand where to search bit (not CX or same as %1!)
 ;	Returns:
-;		%1:		Index of highest order bit from %2
+;		%1:		Index of lowest order bit from %2
 ;		ZF:		Set if %2 is zero
 ;				Cleared if %2 is non-zero
 ;	Corrupts registers:
@@ -190,26 +195,44 @@ BITS 16							; Set 16 bit code generation
 ;--------------------------------------------------------------------
 %macro eBSF 2
 %ifndef USE_386
-	cmp		WORD %2, BYTE 0		; Source operand is zero?
-	je		SHORT %%Return		;  If so, return with ZF set
+	FSIS	], %2				; %2 is a memory operand?
+	%if strpos
+		cmp		WORD %2, BYTE 0	; Source operand is zero?
+		je		SHORT %%Return	;  If so, return with ZF set
+	%else						; No, %2 is a register
+		test	%2, %2
+		jz		SHORT %%Return
+	%endif
 
-	; Set destination to zero and load mask for bit 0
 	push	cx
-	xor		%1, %1
-	mov		cx, 1
+
+%ifdef USE_NEC_V
+	mov		cx, -1
 
 ALIGN JUMP_ALIGN
 %%BitLoop:
-	test	%2, cx				; Bit set?
-	jnz		SHORT %%PopAndReturn;  If so, return with ZF cleared
-	shl		cx, 1				; Prepare to test next bit
+	inc		cx
+	eTEST1	%2, cl
+	jz		SHORT %%BitLoop
+	mov		%1, cx
+
+%else ; ~USE_NEC_V
+	mov		cx, 1<<15
+	mov		%1, -1
+
+ALIGN JUMP_ALIGN
+%%BitLoop:
+	rol		cx, 1				; Prepare to test next bit
 	inc		%1					; Increment bit index
-	jmp		SHORT %%BitLoop		; Loop until bit found
-%%PopAndReturn:
+	test	%2, cx				; Bit set?
+	jz		SHORT %%BitLoop
+%endif
+
 	pop		cx
+
 %%Return:
 ;-----------------------------------
-%else
+%else ; USE_386
 	bsf		%1, %2
 %endif
 %endmacro
@@ -232,26 +255,44 @@ ALIGN JUMP_ALIGN
 ;--------------------------------------------------------------------
 %macro eBSR 2
 %ifndef USE_386
-	cmp		WORD %2, BYTE 0		; Source operand is zero?
-	je		SHORT %%Return		;  If so, return with ZF set
+	FSIS	], %2				; %2 is a memory operand?
+	%if strpos
+		cmp		WORD %2, BYTE 0	; Source operand is zero?
+		je		SHORT %%Return	;  If so, return with ZF set
+	%else						; No, %2 is a register
+		test	%2, %2
+		jz		SHORT %%Return
+	%endif
 
-	; Load mask for highest order bit
 	push	cx
-	mov		cx, 1<<15
-	mov		%1, 15
+
+%ifdef USE_NEC_V
+	mov		cx, 16
 
 ALIGN JUMP_ALIGN
 %%BitLoop:
-	test	%2, cx				; Bit set?
-	jnz		SHORT %%PopAndReturn;  If so, return with ZF cleared
-	shr		cx, 1				; Prepare to test next bit
+	dec		cx
+	eTEST1	%2, cl
+	jz		SHORT %%BitLoop
+	mov		%1, cx
+
+%else ; ~USE_NEC_V
+	mov		cx, 1
+	mov		%1, 16
+
+ALIGN JUMP_ALIGN
+%%BitLoop:
+	ror		cx, 1				; Prepare to test next bit
 	dec		%1					; Decrement bit index
-	jmp		SHORT %%BitLoop		; Loop until bit found
-%%PopAndReturn:
+	test	%2, cx				; Bit set?
+	jz		SHORT %%BitLoop
+%endif
+
 	pop		cx
+
 %%Return:
 ;-----------------------------------
-%else
+%else ; USE_386
 	bsr		%1, %2
 %endif
 %endmacro
@@ -533,31 +574,40 @@ ALIGN JUMP_ALIGN
 ;		%1:		REP/REPE/REPZ or REPNE/REPNZ prefix
 ;		%2:		Source segment override (destination is always ES)
 ;		%3:		String instruction
+;		%4:		An exclamation mark (!) if the state of the IF must
+;				be preserved (can not be used together with CMPS or
+;				SCAS instructions), otherwise it will be set on
+;				return from the macro (i.e. interrupts will be on)
 ;		CX:		Repeat count
 ;	Returns:
-;		FLAGS for cmps and scas only
+;		FLAGS for CMPS and SCAS only
 ;	Corrupts registers:
 ;		FLAGS
 ;--------------------------------------------------------------------
-%macro eSEG_STR 3
-%ifndef USE_186	; 8088/8086 has string instruction restart bug when more than one prefix
-	%%Loop:
-		%1						; REP is the prefix that can be lost
-		%2						; SEG is the prefix that won't be lost
-		%3						; String instruction
-FSIS	cmps, %3
+%macro eSEG_STR 3-4
+%ifndef USE_186	; 8088/8086 has string instruction restart bug when using more than one prefix
+%ifidn %4, !				; Preserve the IF
+	FSIS	cmps, %3
 %ifn strpos
 	FSIS	scas, %3
 %endif
-%if strpos						; Must preserve FLAGS
-		jcxz	%%End			; Jump to end if no repeats left (preserves FLAGS)
-		jmp		SHORT %%Loop	; Loop while repeats left
-	%%End:
-%else							; No need to preserve FLAGS
-		inc		cx
-		loop	%%Loop
+%if strpos
+	%error "The state of the IF can not be preserved when using CMPS or SCAS!"
 %endif
-%else	; No bug on V20/V30 and later, don't know about 188/186
+	pushf
+	cli
+	%1						; REP is the prefix that can be lost
+	%2						; SEG is the prefix that won't be lost
+	%3						; String instruction
+	popf
+%else						; No need to preserve the IF
+	cli
+	%1
+	%2
+	%3
+	sti
+%endif
+%else	; No bug on V20/V30/188/186 and later
 	%2
 	%1 %3
 %endif

@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -94,6 +94,20 @@ Dialog_EventExitMenu:
 
 
 ;--------------------------------------------------------------------
+; Dialog_EventInitializeMenuinitFromDSSIforSingleItemWithItemZero
+;	Parameters:
+;		DS:SI:		Ptr to MENUINIT struct to initialize
+;		SS:BP:		Ptr to DIALOG
+;	Returns:
+;		DS:SI:		Ptr to initialized MENUINIT struct
+;		CF:			Set since event processed
+;--------------------------------------------------------------------
+ALIGN JUMP_ALIGN
+Dialog_EventInitializeMenuinitFromDSSIforSingleItemWithItemZero:
+	xor		ax, ax
+	; Fall to Dialog_EventInitializeMenuinitFromDSSIforSingleItemWithHighlightedItemInAX
+
+;--------------------------------------------------------------------
 ; Dialog_EventInitializeMenuinitFromDSSIforSingleItemWithHighlightedItemInAX
 ;	Parameters:
 ;		AX:			Index of highlighted item
@@ -103,7 +117,6 @@ Dialog_EventExitMenu:
 ;		DS:SI:		Ptr to initialized MENUINIT struct
 ;		CF:			Set since event processed
 ;--------------------------------------------------------------------
-ALIGN JUMP_ALIGN
 Dialog_EventInitializeMenuinitFromDSSIforSingleItemWithHighlightedItemInAX:
 	les		di, [bp+DIALOG.fpDialogIO]
 	mov		WORD [es:di+DIALOG_INPUT.fszItems], g_szSingleItem
