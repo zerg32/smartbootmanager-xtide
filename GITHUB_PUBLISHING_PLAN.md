@@ -24,9 +24,10 @@
   `https://github.com/zerg32/smartbootmanager-xtide`; `main` and both upstream
   tags are pushed.
 - Completed: the initial GitHub Actions build passed and uploaded boot artifacts.
+- Completed: the current rebuilt components were installed to `/dev/sde`, passed
+  strict LBA 0-159 byte comparison, and started SBM on the physical 486.
 - Remaining: optionally split the initial integration commit into narrower
-  follow-up commits. Do not create the `v0.1.0-xtide-r619` release tag until
-  the current rebuilt boot components are verified again on the physical 486.
+  follow-up commits.
 
 1. Preserve the currently working source state and record hashes for:
    - SBM 3.7.1 archive: `f17fa683705e4458d49537d8d122ad4d0b53de6e0f175e481209c7d79da1a03a`
@@ -132,7 +133,7 @@
     ```
 
 13. Create `zerg32/smartbootmanager-xtide`, push the main branch and upstream tags, then verify the GitHub Actions build. Completed.
-14. After current physical-hardware verification, tag the known-good release as `v0.1.0-xtide-r619`.
+14. Tag the known-good release as `v0.1.0-xtide-r619`.
 15. Describe that release as:
 
     ```text

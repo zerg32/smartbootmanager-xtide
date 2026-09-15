@@ -137,6 +137,10 @@ components and canonical one-partition layout:
 sudo scripts/install_bootloader.sh --verify-exact /dev/sdX
 ```
 
+This path was verified on the target 486 on 2026-09-15: a 500 MiB P1 card
+passed strict LBA 0-159 comparison and started SBM. It contained no operating
+system yet.
+
 Repair boot components after an OS installer overwrites them:
 
 ```sh

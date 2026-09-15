@@ -563,6 +563,10 @@ table, run:
 sudo scripts/install_bootloader.sh --verify-exact /dev/sdX
 ```
 
+On 2026-09-15, `/dev/sde` was initialized with a 500 MiB P1, passed this strict
+check, and started SBM on the target 486. No operating system was installed on
+that test partition.
+
 Repair a boot area overwritten by an OS installer:
 
 ```sh
